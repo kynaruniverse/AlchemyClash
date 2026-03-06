@@ -42,24 +42,17 @@
     }
 
     @media (min-width: 640px) {
-      .entity { grid-template-columns: 180px 1fr; }
+      .entity { grid-template-columns: 200px 1fr; }
     }
 
-    .entity:nth-child(1) { animation-delay: 0.2s; }
+    .entity:nth-child(1) { animation-delay: 0.2s; border-left-color: var(--accent); }
     .entity:nth-child(2) { animation-delay: 0.3s; }
-    .entity:nth-child(3) { animation-delay: 0.4s; border-left-color: var(--wrong-dim); }
+    .entity:nth-child(3) { animation-delay: 0.4s; }
+    .entity:nth-child(4) { animation-delay: 0.5s; border-left-color: var(--wrong-dim); }
 
     .entity:hover { border-left-color: var(--accent); }
 
-    .entity__left {}
-
-    .entity__designation {
-      font-family: var(--font-terminal);
-      font-size: var(--text-xs);
-      color: var(--text-dim);
-      letter-spacing: 0.1em;
-      margin-bottom: var(--space-xs);
-    }
+    .entity__designation { font-family: var(--font-terminal); font-size: var(--text-xs); color: var(--text-dim); letter-spacing: 0.1em; margin-bottom: var(--space-xs); }
 
     .entity__name {
       font-family: var(--font-ui);
@@ -71,29 +64,11 @@
       margin-bottom: var(--space-xs);
     }
 
-    .entity__class {
-      font-family: var(--font-terminal);
-      font-size: var(--text-xs);
-      color: var(--accent);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-    }
+    .entity__class { font-family: var(--font-terminal); font-size: var(--text-xs); color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; }
 
-    .entity__right {}
+    .entity__desc { font-family: var(--font-body); font-size: var(--text-sm); color: var(--text); line-height: 1.8; margin-bottom: var(--space-md); }
 
-    .entity__desc {
-      font-family: var(--font-body);
-      font-size: var(--text-sm);
-      color: var(--text);
-      line-height: 1.8;
-      margin-bottom: var(--space-md);
-    }
-
-    .entity__attrs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-sm);
-    }
+    .entity__attrs { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
 
     .entity__attr {
       font-family: var(--font-terminal);
@@ -106,10 +81,7 @@
 
     .entity__attr span { color: var(--silver); }
 
-    .entity--unknown {
-      border-left-color: var(--wrong-dim);
-      opacity: 0.7;
-    }
+    .entity--primary { border-left-color: var(--accent) !important; }
   </style>
 </head>
 <body class="scanlines noise">
@@ -145,67 +117,121 @@
     </div>
 
     <h1 class="doc-title">Known Entities</h1>
-    <p class="doc-subtitle">Personnel & Faction Register — Incomplete — Visitor Clearance</p>
+    <p class="doc-subtitle">Faction & Personnel Register — Incomplete — Visitor Clearance</p>
 
     <div class="entity-list">
 
-      <div class="entity">
+      <!-- The Black Table -->
+      <div class="entity entity--primary">
         <div class="entity__left">
-          <div class="entity__designation">ENT-001</div>
-          <div class="entity__name">The Archivist</div>
-          <div class="entity__class">Class: Unknown</div>
+          <div class="entity__designation">ENT-001 // PRIMARY THREAT</div>
+          <div class="entity__name">The Black Table</div>
+          <div class="entity__class">Class: Organisation — Ancient</div>
         </div>
         <div class="entity__right">
           <p class="entity__desc">
-            An entity referenced in multiple unconnected documents across the Kynar archive.
-            No physical description exists. No location has been confirmed.
-            The Archivist appears to be responsible for the records in this system —
-            though who or what authorised their access is unknown.
+            The Black Table is not a recent creation. They predate modern governments,
+            modern borders, modern institutions. They have been present — quietly,
+            invisibly — at every significant juncture in recorded history.
+            Not causing events. Controlling the conditions that allow events to happen.
           </p>
-          <div class="entity__attrs">
-            <div class="entity__attr">STATUS: <span>UNVERIFIED</span></div>
-            <div class="entity__attr">THREAT: <span>UNKNOWN</span></div>
-            <div class="entity__attr">ORIGIN: <span>REDACTED</span></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="entity">
-        <div class="entity__left">
-          <div class="entity__designation">ENT-002</div>
-          <div class="entity__name">Vael Council</div>
-          <div class="entity__class">Class: Faction</div>
-        </div>
-        <div class="entity__right">
           <p class="entity__desc">
-            The governing body of the territory of Vael. Seven seats.
-            Composition changes, but the agenda does not.
-            They maintain control through resource allocation and information suppression.
-            They are aware this archive exists. They have not yet acted on it.
+            Their objective is control. Not of any single nation or resource,
+            but of the layer itself — and of the people the layer produces.
+            They catalogue those with abilities. They monitor bleed points.
+            They suppress information and, when suppression fails, they suppress people.
+          </p>
+          <p class="entity__desc">
+            Their internal structure is unknown to outsiders. A council is believed
+            to exist at the highest level — a small number of individuals whose
+            identities have never been confirmed. Below that, the structure
+            is deliberately obscured, even to those within it.
+            Most people who work for The Black Table do not know they do.
           </p>
           <div class="entity__attrs">
             <div class="entity__attr">STATUS: <span>ACTIVE</span></div>
-            <div class="entity__attr">THREAT: <span>HIGH</span></div>
-            <div class="entity__attr">TERRITORY: <span>VAEL</span></div>
+            <div class="entity__attr">THREAT: <span style="color:var(--accent)">EXTREME</span></div>
+            <div class="entity__attr">ORIGIN: <span>PREDATES RECORD</span></div>
+            <div class="entity__attr">KNOWN TO PUBLIC: <span>NO</span></div>
           </div>
         </div>
       </div>
 
-      <div class="entity entity--unknown">
+      <!-- The Unawakened -->
+      <div class="entity">
         <div class="entity__left">
-          <div class="entity__designation">ENT-00?</div>
-          <div class="entity__name" style="color:var(--wrong)">██████</div>
-          <div class="entity__class" style="color:var(--wrong)">Class: RESTRICTED</div>
+          <div class="entity__designation">ENT-002 // POPULATION</div>
+          <div class="entity__name">The Unawakened</div>
+          <div class="entity__class">Class: General — Latent</div>
+        </div>
+        <div class="entity__right">
+          <p class="entity__desc">
+            The majority of the world's population. People who carry the potential
+            for abilities without knowing it — dormant, untriggered, unaware.
+            The layer's increasing activity means more of them are waking up
+            every day. Most have no framework for what is happening to them.
+            Most have no one to tell.
+          </p>
+          <p class="entity__desc">
+            The Black Table monitors trigger events closely.
+            First awakening is the most dangerous moment — for the individual,
+            and for everyone around them.
+          </p>
+          <div class="entity__attrs">
+            <div class="entity__attr">STATUS: <span>INCREASING</span></div>
+            <div class="entity__attr">THREAT: <span>VARIABLE</span></div>
+            <div class="entity__attr">AWARENESS: <span>NONE</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- The Resistance (forming) -->
+      <div class="entity">
+        <div class="entity__left">
+          <div class="entity__designation">ENT-003 // EMERGING</div>
+          <div class="entity__name">The Unnamed</div>
+          <div class="entity__class">Class: Resistance — Forming</div>
+        </div>
+        <div class="entity__right">
+          <p class="entity__desc">
+            There is no organisation yet. No name, no structure, no leadership.
+            What exists is a loose collection of individuals — some awakened,
+            some simply suspicious — who have independently arrived at the same
+            conclusion: something is being hidden, and whoever is hiding it
+            does not have good intentions.
+          </p>
+          <p class="entity__desc">
+            Whether they will organise into something coherent before
+            The Black Table identifies and neutralises them is, at the time
+            of this document's compilation, unknown.
+          </p>
+          <div class="entity__attrs">
+            <div class="entity__attr">STATUS: <span>FORMING</span></div>
+            <div class="entity__attr">THREAT TO BLACK TABLE: <span>LOW — CURRENTLY</span></div>
+            <div class="entity__attr">STRUCTURE: <span>NONE YET</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Redacted entity -->
+      <div class="entity" style="border-left-color: var(--wrong-dim); opacity:0.65;">
+        <div class="entity__left">
+          <div class="entity__designation">ENT-00? // RESTRICTED</div>
+          <div class="entity__name" style="color:var(--wrong)">██████████</div>
+          <div class="entity__class" style="color:var(--wrong)">Class: UNKNOWN</div>
         </div>
         <div class="entity__right">
           <p class="entity__desc" style="font-family:var(--font-terminal); color:var(--text-dim); font-size:var(--text-xs); letter-spacing:0.05em;">
-            This entity file has been flagged for restricted access.
-            The designation, classification, and all associated data have been withheld.
-            If you are reading this notice, you do not have clearance.
-            The fact that this entry exists is itself classified information.
+            This entity file has been sealed. Not by The Black Table —
+            by whoever built this archive. The designation, classification,
+            origin and all associated data have been withheld at source.
+            The archivist has noted only this: this entity is the reason
+            the layer is becoming more active. Everything else is above
+            Visitor clearance.
           </p>
           <div class="entity__attrs">
             <div class="entity__attr" style="border-color:var(--wrong-dim); color:var(--wrong)">ACCESS: DENIED</div>
+            <div class="entity__attr" style="border-color:var(--wrong-dim); color:var(--wrong)">CLEARANCE REQUIRED: UNKNOWN</div>
           </div>
         </div>
       </div>
@@ -221,7 +247,7 @@
     toggle.addEventListener('click', () => {
       const open = toggle.classList.toggle('open');
       menu.classList.toggle('open', open);
-      toggle.setAttribute('aria-expanded', open);
+      toggle.setAttribute('aria-expanded', !open);
       menu.setAttribute('aria-hidden', !open);
     });
 

@@ -13,68 +13,21 @@
     }
 
     .doc-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-md);
-      align-items: center;
-      margin-bottom: var(--space-xl);
-      padding-bottom: var(--space-lg);
-      border-bottom: 1px solid var(--border);
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.1s forwards;
+      display: flex; flex-wrap: wrap; gap: var(--space-md);
+      align-items: center; margin-bottom: var(--space-xl);
+      padding-bottom: var(--space-lg); border-bottom: 1px solid var(--border);
+      opacity: 0; animation: fadeUp 0.5s ease 0.1s forwards;
     }
 
-    .doc-meta__id {
-      font-family: var(--font-terminal);
-      font-size: var(--text-xs);
-      color: var(--accent);
-      letter-spacing: 0.2em;
-    }
-
-    .doc-back {
-      font-family: var(--font-terminal);
-      font-size: var(--text-xs);
-      color: var(--text-dim);
-      letter-spacing: 0.1em;
-      text-decoration: none;
-      transition: color var(--transition-fast);
-      margin-left: auto;
-    }
-
+    .doc-meta__id { font-family: var(--font-terminal); font-size: var(--text-xs); color: var(--accent); letter-spacing: 0.2em; }
+    .doc-back { font-family: var(--font-terminal); font-size: var(--text-xs); color: var(--text-dim); letter-spacing: 0.1em; text-decoration: none; margin-left: auto; transition: color var(--transition-fast); }
     .doc-back:hover { color: var(--silver); }
 
-    .doc-title {
-      font-family: var(--font-lore);
-      font-size: var(--text-2xl);
-      color: var(--text-bright);
-      margin-bottom: var(--space-sm);
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.2s forwards;
-    }
+    .doc-title { font-family: var(--font-lore); font-size: var(--text-2xl); color: var(--text-bright); margin-bottom: var(--space-sm); opacity: 0; animation: fadeUp 0.5s ease 0.2s forwards; }
+    .doc-subtitle { font-family: var(--font-terminal); font-size: var(--text-xs); color: var(--text-dim); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: var(--space-xl); opacity: 0; animation: fadeUp 0.5s ease 0.3s forwards; }
 
-    .doc-subtitle {
-      font-family: var(--font-terminal);
-      font-size: var(--text-xs);
-      color: var(--text-dim);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: var(--space-xl);
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.3s forwards;
-    }
-
-    .doc-body {
-      font-family: var(--font-body);
-      font-size: var(--text-base);
-      color: var(--text);
-      line-height: 1.9;
-      opacity: 0;
-      animation: fadeUp 0.5s ease 0.4s forwards;
-    }
-
-    .doc-body p {
-      margin-bottom: var(--space-lg);
-    }
+    .doc-body { font-family: var(--font-body); font-size: var(--text-base); color: var(--text); line-height: 1.9; opacity: 0; animation: fadeUp 0.5s ease 0.4s forwards; }
+    .doc-body p { margin-bottom: var(--space-lg); }
 
     .doc-body h2 {
       font-family: var(--font-ui);
@@ -160,59 +113,82 @@
 
     <div class="doc-body">
       <p>
-        The Kynar Universe does not have a beginning in the conventional sense.
-        There is no single moment of creation, no genesis event recorded in any
-        known archive. What exists instead is a vast, ongoing unfolding — a reality
-        that appears to have always been in motion, as though it arrived fully formed
-        and simply chose not to explain itself.
+        The world most people inhabit is not the whole world. It never was.
+        Beneath the surface of the present — beneath the cities, the institutions,
+        the ordinary momentum of daily life — there is another layer.
+        It has no official name. It has always been there.
+        And for most of human history, almost no one knew.
       </p>
 
-      <h2>The Earliest Record</h2>
+      <h2>The Layer</h2>
       <p>
-        The earliest document recovered from the Kynar data-stream dates to
-        <span class="redacted" title="Redacted">YEAR ZERO</span>, a designation
-        given by archivists who could find no earlier reference point.
-        At this moment, three things are recorded as true: the universe existed,
-        it was already structured, and something within it was already
-        <span class="redacted" title="Redacted">watching</span>.
+        The hidden layer is not a place in the conventional sense.
+        It does not have a postcode or coordinates. It is a dimension that runs
+        parallel to our own — close enough that, at certain points,
+        it bleeds through. A doorway that shouldn't open. A room that feels
+        wrong in a way you cannot explain. A moment where something passes
+        through the air and leaves a mark on the people nearby.
+      </p>
+      <p>
+        These bleed points are not random. They cluster around specific locations
+        across the world — sites that share no obvious geographical or historical
+        connection, except that they all sit at coordinates where the boundary
+        between layers is thinner than it should be. Nobody knows why those
+        locations were chosen. Nobody knows if they were chosen at all.
       </p>
 
+      <h2>The Abilities</h2>
       <p>
-        What watches — and why — remains one of the open questions of this archive.
-        Speculation is noted in file <span class="redacted" title="Redacted">DOC-KYN-009</span>,
-        currently restricted to higher clearance levels.
+        The layer's proximity to the surface world has consequences.
+        People born near bleed points, or exposed to them at formative moments,
+        sometimes develop abilities. Physical. Perceptual. Mental. Elemental.
+        Dimensional. The range is wide and the origins vary — some abilities
+        appear to be inherited, passed quietly through bloodlines for generations.
+        Others seem to emerge from direct contact with the layer itself.
+        A small number appear to arise from <span class="redacted" title="Redacted">technological intervention</span>.
+      </p>
+      <p>
+        Most people who carry these abilities have no idea they have them.
+        The abilities lie dormant — waiting for a trigger, a pressure point,
+        a moment of extremity that cracks something open. Across the world,
+        right now, people are discovering what they are capable of for the first time.
+        Most of them are not prepared. Most of them have no one to tell.
       </p>
 
-      <h2>Structure of the Universe</h2>
+      <h2>What Is Known and Who Knows It</h2>
       <p>
-        Kynar is not a single planet, nor a galaxy in the conventional sense.
-        It is better understood as a <em>layered system</em> — physical territories
-        that exist in parallel with something older and less understood beneath them.
-        Researchers refer to this beneath-layer as the <strong>Sub</strong>, though
-        no consensus has been reached on what it actually is.
+        The existence of the layer, and the abilities it produces, is not public knowledge.
+        It is myth, rumour, dismissed. The people who know the truth —
+        who have mapped the bleed points, catalogued the abilities,
+        built entire systems of control around what they know —
+        have spent a very long time ensuring it stays that way.
+      </p>
+      <p>
+        That organisation is referred to in this archive as
+        <strong style="color:var(--accent)">The Black Table</strong>.
+        Their full history is documented in DOC-KYN-003.
+        What matters here is this: they did not discover the layer.
+        They have simply always known about it. And they have never
+        had any intention of sharing that knowledge.
       </p>
 
+      <h2>The Present</h2>
       <p>
-        Above the Sub, the visible universe is divided into
-        <span class="redacted" title="Redacted">███</span> known territories,
-        each with distinct geography, atmosphere, and population.
-        These territories are documented in the Locations file.
-      </p>
-
-      <h2>Why It Matters</h2>
-      <p>
-        Understanding the origins of the Kynar Universe is not an academic exercise.
-        The fractures in its history — the events that were never recorded,
-        the entities that predate any archive — have direct consequences for
-        those who move through it today. Things that should not be possible
-        continue to occur. The universe has not finished becoming what it is.
+        Something has changed. The bleed points are becoming more active.
+        More people are awakening to abilities they did not know they had.
+        The layer is pushing closer to the surface — not catastrophically,
+        not yet, but measurably. The instruments confirm it.
+        The Black Table is aware. What they intend to do about it
+        is not recorded in any document available at this clearance level.
       </p>
 
       <div class="doc-notice">
         <strong>// ARCHIVIST NOTE</strong>
-        This document is intentionally incomplete. Sections have been withheld
-        pending a clearance review that has not yet been scheduled.
-        The universe is still being mapped. Return when more is known.
+        This document represents the limit of what can be disclosed at Visitor clearance.
+        The question of why the layer is becoming more active,
+        and what — if anything — is on the other side of it,
+        is addressed in restricted files not accessible from this node.
+        Return when your clearance changes.
       </div>
     </div>
   </main>

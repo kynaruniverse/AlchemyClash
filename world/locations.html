@@ -24,13 +24,23 @@
     .doc-back:hover { color: var(--silver); }
 
     .doc-title { font-family: var(--font-lore); font-size: var(--text-2xl); color: var(--text-bright); margin-bottom: var(--space-sm); opacity: 0; animation: fadeUp 0.5s ease 0.2s forwards; }
-    .doc-subtitle { font-family: var(--font-terminal); font-size: var(--text-xs); color: var(--text-dim); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: var(--space-xl); opacity: 0; animation: fadeUp 0.5s ease 0.3s forwards; }
+    .doc-subtitle { font-family: var(--font-terminal); font-size: var(--text-xs); color: var(--text-dim); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: var(--space-md); opacity: 0; animation: fadeUp 0.5s ease 0.3s forwards; }
+
+    .doc-intro {
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      color: var(--text);
+      line-height: 1.8;
+      margin-bottom: var(--space-xl);
+      max-width: 620px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 0.35s forwards;
+    }
 
     .locations-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: var(--space-md);
-      margin-top: var(--space-lg);
     }
 
     @media (min-width: 640px) {
@@ -44,6 +54,7 @@
       position: relative;
       opacity: 0;
       animation: fadeUp 0.5s ease forwards;
+      transition: border-color var(--transition-mid);
     }
 
     .location-card:nth-child(1) { animation-delay: 0.2s; }
@@ -63,6 +74,7 @@
       transition: transform var(--transition-mid);
     }
 
+    .location-card:hover { border-color: var(--border-bright); }
     .location-card:hover::before { transform: scaleX(1); }
 
     .location-card__coord {
@@ -80,7 +92,7 @@
       letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--text-bright);
-      margin-bottom: var(--space-sm);
+      margin-bottom: var(--space-xs);
     }
 
     .location-card__type {
@@ -106,14 +118,8 @@
     }
 
     .location-card--redacted {
-      border-color: var(--wrong-dim);
-      background: var(--surface);
-    }
-
-    .location-card--redacted .location-card__desc {
-      color: var(--text-dim);
-      font-family: var(--font-terminal);
-      letter-spacing: 0.05em;
+      opacity: 0.6;
+      animation-delay: 0.7s;
     }
   </style>
 </head>
@@ -149,73 +155,94 @@
       <a href="index.html" class="doc-back">← Back to Archive</a>
     </div>
 
-    <h1 class="doc-title">Known Locations</h1>
+    <h1 class="doc-title">Known Bleed Points</h1>
     <p class="doc-subtitle">Territory Map — Classification Level: Visitor — Partial Access</p>
+
+    <p class="doc-intro">
+      The following locations are sites where the boundary between the surface world
+      and the hidden layer is measurably thinner than the surrounding area.
+      They are spread across multiple real-world territories with no apparent
+      geographical connection. What they share is documented below.
+      Why they share it is not yet understood.
+    </p>
 
     <div class="locations-grid">
 
       <div class="location-card">
-        <div class="location-card__coord">COORD: 00.00 // ORIGIN POINT</div>
-        <div class="location-card__name">The Threshold</div>
-        <div class="location-card__type">Zone — Neutral</div>
+        <div class="location-card__coord">51.5074° N, 0.1278° W — LONDON, UK</div>
+        <div class="location-card__name">The Underlift</div>
+        <div class="location-card__type">Bleed Point — Urban / High Activity</div>
         <p class="location-card__desc">
-          The point between the Sub and the visible universe. Not a place in any conventional sense —
-          more a condition. Those who have passed through it do not describe it the same way twice.
+          Concentrated beneath the older boroughs of the city — the parts that were
+          built before records were kept properly. The bleed here is not dramatic.
+          It is persistent. A low hum. A door that opens onto a street that
+          shouldn't be there. A section of tunnel on a line that doesn't appear
+          on any map. Activity has increased significantly in the past eighteen months.
         </p>
         <div class="location-card__status">
-          <div class="k-status k-status--testing">Partially Mapped</div>
+          <div class="k-status k-status--corrupted">High Activity</div>
         </div>
       </div>
 
       <div class="location-card">
-        <div class="location-card__coord">COORD: 14.72 // SECTOR NORTH</div>
-        <div class="location-card__name">Vael</div>
-        <div class="location-card__type">Territory — Urban</div>
+        <div class="location-card__coord">40.7128° N, 74.0060° W — NEW YORK, USA</div>
+        <div class="location-card__name">The Fracture</div>
+        <div class="location-card__type">Bleed Point — Urban / Unstable</div>
         <p class="location-card__desc">
-          The largest known inhabited territory in the Kynar Universe. Dense, stratified,
-          and contradictory — wealth and ruin existing within metres of each other.
-          Power is distributed across several competing factions.
+          The bleed point here is unstable in a way that distinguishes it from others.
+          It does not simply thin — it cracks. Brief, violent ruptures that expose
+          the layer for seconds at a time before closing again.
+          Three individuals with abilities have been documented emerging
+          from within a two-block radius in the last year alone.
+          The Black Table has a significant presence here.
         </p>
         <div class="location-card__status">
-          <div class="k-status k-status--stable">Documented</div>
+          <div class="k-status k-status--corrupted">Unstable</div>
         </div>
       </div>
 
       <div class="location-card">
-        <div class="location-card__coord">COORD: 33.18 // SECTOR EAST</div>
-        <div class="location-card__name">The Pale Reach</div>
-        <div class="location-card__type">Territory — Frontier</div>
+        <div class="location-card__coord">35.6762° N, 139.6503° E — TOKYO, JAPAN</div>
+        <div class="location-card__name">The Still</div>
+        <div class="location-card__type">Bleed Point — Urban / Dormant</div>
         <p class="location-card__desc">
-          A vast, barely-habitable expanse. Cold, featureless, and largely unmapped.
-          Considered dangerous not because of any known threat, but because of what
-          has never come back from it.
+          Unlike other bleed points, the layer here does not push outward.
+          It pulls. Those who spend extended time near the site report a sensation
+          of being observed — not by anything present, but by something patient.
+          Perceptual and dimensional abilities are disproportionately common
+          among people who grew up in the surrounding area.
         </p>
         <div class="location-card__status">
-          <div class="k-status k-status--testing">Active Survey</div>
+          <div class="k-status k-status--testing">Monitoring</div>
         </div>
       </div>
 
       <div class="location-card">
-        <div class="location-card__coord">COORD: 07.44 // BELOW-LAYER</div>
-        <div class="location-card__name">The Sub</div>
-        <div class="location-card__type">Layer — Unknown Class</div>
+        <div class="location-card__coord">-33.8688° S, 151.2093° E — SYDNEY, AUSTRALIA</div>
+        <div class="location-card__name">The Depth</div>
+        <div class="location-card__type">Bleed Point — Coastal / Submerged</div>
         <p class="location-card__desc">
-          The layer that exists beneath the visible universe. Its nature is disputed.
-          Those who have interacted with it directly are not considered reliable narrators.
-          Documentation is ongoing.
+          The only known bleed point that exists primarily below water.
+          Discovered when a research team investigating unusual sonar readings
+          disappeared for eleven hours and returned with no memory of the interval.
+          All four individuals subsequently developed abilities.
+          Current status: partially sealed by Black Table intervention.
+          Effectiveness of sealing: disputed.
         </p>
         <div class="location-card__status">
-          <div class="k-status k-status--corrupted">Unstable Data</div>
+          <div class="k-status k-status--testing">Partially Sealed</div>
         </div>
       </div>
 
       <div class="location-card location-card--redacted">
-        <div class="location-card__coord">COORD: [REDACTED]</div>
-        <div class="location-card__name k-redacted">██████████</div>
-        <div class="location-card__type" style="color:var(--wrong)">RESTRICTED</div>
-        <p class="location-card__desc">
-          Access to this location file requires a clearance level not currently held by this visitor.
-          This entry exists to confirm the location exists.
+        <div class="location-card__coord">[COORDINATES REDACTED]</div>
+        <div class="location-card__name k-redacted">████████████</div>
+        <div class="location-card__type" style="color:var(--wrong)">Bleed Point — RESTRICTED</div>
+        <p class="location-card__desc" style="font-family:var(--font-terminal); font-size:var(--text-xs); color:var(--text-dim); letter-spacing:0.05em;">
+          This location file has been sealed at Black Table directive.
+          The bleed point designated here is classified at a level above
+          Visitor clearance. What is confirmed: it exists, it is active,
+          and it is the reason this archive exists at all.
         </p>
         <div class="location-card__status">
           <div class="k-status k-status--corrupted">Access Denied</div>

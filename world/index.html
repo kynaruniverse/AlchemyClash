@@ -40,7 +40,7 @@
       font-family: var(--font-body);
       font-size: var(--text-base);
       color: var(--text);
-      max-width: 520px;
+      max-width: 560px;
       line-height: 1.8;
       opacity: 0;
       animation: fadeUp 0.5s ease 0.3s forwards;
@@ -64,7 +64,6 @@
 
     .archive-hero__meta-item span { color: var(--silver); }
 
-    /* Document list */
     .archive-list {
       max-width: var(--max-width);
       margin: 0 auto;
@@ -130,8 +129,6 @@
       letter-spacing: 0.1em;
     }
 
-    .archive-doc__info {}
-
     .archive-doc__name {
       font-family: var(--font-ui);
       font-size: var(--text-lg);
@@ -148,11 +145,8 @@
       color: var(--text-dim);
     }
 
-    .archive-doc__status {
-      text-align: right;
-    }
+    .archive-doc__status { text-align: right; }
 
-    /* Redacted notice */
     .archive-redacted {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -177,7 +171,6 @@
 <body class="scanlines noise">
   <div class="k-grid-bg" aria-hidden="true"></div>
 
-  <!-- Nav -->
   <nav class="k-nav" aria-label="Site navigation">
     <a href="../hub.html" class="k-nav__logo">KYNAR<span>//OS</span></a>
     <div class="k-nav__links">
@@ -192,7 +185,6 @@
     </button>
   </nav>
 
-  <!-- Mobile menu -->
   <div class="k-nav__mobile" id="mobileMenu" aria-hidden="true">
     <a href="../hub.html">Hub</a>
     <a href="index.html">World</a>
@@ -201,22 +193,23 @@
     <a href="../about/index.html">About</a>
   </div>
 
-  <!-- Hero -->
   <section class="archive-hero">
     <div class="archive-hero__stamp">◈ WORLD ARCHIVE — CLASSIFIED</div>
     <h1 class="archive-hero__title">The Kynar Universe</h1>
     <p class="archive-hero__desc">
-      What follows is a collection of classified documents pertaining to the Kynar Universe.
-      Origin records, entity files, and location data. Some sections remain redacted pending clearance review.
+      The world you think you know has another layer. It always has.
+      What follows is a collection of documents pertaining to that layer —
+      its origins, its geography, the people who move through it,
+      and the forces that have always controlled it from beneath.
+      Some sections remain redacted. That is not an oversight.
     </p>
     <div class="archive-hero__meta">
       <div class="archive-hero__meta-item">FILES: <span>3 ACCESSIBLE</span></div>
       <div class="archive-hero__meta-item">REDACTED: <span style="color:var(--accent)">MULTIPLE</span></div>
-      <div class="archive-hero__meta-item">LAST UPDATE: <span>UNKNOWN</span></div>
+      <div class="archive-hero__meta-item">CLASSIFICATION: <span>VISITOR</span></div>
     </div>
   </section>
 
-  <!-- Document list -->
   <main class="archive-list">
     <div class="archive-list__label">Accessible Documents</div>
 
@@ -224,7 +217,7 @@
       <div class="archive-doc__id">DOC-KYN-001</div>
       <div class="archive-doc__info">
         <div class="archive-doc__name">Origins</div>
-        <div class="archive-doc__desc">How the Kynar Universe came to exist. Foundational record.</div>
+        <div class="archive-doc__desc">What the Kynar Universe is, how it came to be known, and what sits beneath everything.</div>
       </div>
       <div class="archive-doc__status">
         <div class="k-status k-status--stable">Accessible</div>
@@ -235,7 +228,7 @@
       <div class="archive-doc__id">DOC-KYN-002</div>
       <div class="archive-doc__info">
         <div class="archive-doc__name">Locations</div>
-        <div class="archive-doc__desc">Key territories, zones, and coordinates within the universe.</div>
+        <div class="archive-doc__desc">Key territories and sites across the real world where the hidden layer bleeds through.</div>
       </div>
       <div class="archive-doc__status">
         <div class="k-status k-status--stable">Accessible</div>
@@ -246,7 +239,7 @@
       <div class="archive-doc__id">DOC-KYN-003</div>
       <div class="archive-doc__info">
         <div class="archive-doc__name">Entities</div>
-        <div class="archive-doc__desc">Known factions, species, and individuals of significance.</div>
+        <div class="archive-doc__desc">Known factions, individuals, and the organisation that has always been in the room.</div>
       </div>
       <div class="archive-doc__status">
         <div class="k-status k-status--testing">Partial</div>
@@ -255,14 +248,14 @@
 
     <div class="archive-redacted">
       <strong>[REDACTED]</strong>
-      Additional documents exist. Access restricted. Clearance level insufficient.
+      Additional documents exist. Access restricted pending clearance review.<br>
+      The Black Table has flagged this archive. Proceed with awareness.
     </div>
   </main>
 
   <div class="page-transition" id="pageTransition"></div>
 
   <script>
-    // Nav toggle
     const toggle = document.getElementById('navToggle');
     const menu = document.getElementById('mobileMenu');
     toggle.addEventListener('click', () => {
@@ -272,12 +265,11 @@
       menu.setAttribute('aria-hidden', !open);
     });
 
-    // Page transitions
     document.querySelectorAll('a[href]').forEach(link => {
-      if (link.hostname === location.hostname || !link.hostname) {
+      if (!link.href.startsWith('mailto')) {
         link.addEventListener('click', e => {
           const href = link.getAttribute('href');
-          if (!href.startsWith('#') && !href.startsWith('mailto')) {
+          if (href && !href.startsWith('#')) {
             e.preventDefault();
             const overlay = document.getElementById('pageTransition');
             overlay.classList.add('active');
