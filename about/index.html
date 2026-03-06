@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KYNAR // ABOUT</title>
+  <title>KYNAR // BLACKWOOD</title>
   <link rel="stylesheet" href="../assets/css/core.css">
   <style>
     .about-wrapper {
@@ -63,7 +63,6 @@
       letter-spacing: 0.05em;
     }
 
-    /* Sections */
     .about-section {
       margin-bottom: var(--space-xl);
       opacity: 0;
@@ -105,11 +104,8 @@
       margin-bottom: var(--space-md);
     }
 
-    .about-section__body p:last-child {
-      margin-bottom: 0;
-    }
+    .about-section__body p:last-child { margin-bottom: 0; }
 
-    /* Skills grid */
     .skills-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -128,7 +124,7 @@
       padding: var(--space-sm) var(--space-md);
       letter-spacing: 0.1em;
       text-align: center;
-      transition: border-color var(--transition-fast);
+      transition: all var(--transition-fast);
     }
 
     .skill-tag:hover {
@@ -136,7 +132,6 @@
       color: var(--text-bright);
     }
 
-    /* In-universe note */
     .universe-note {
       background: var(--surface);
       border: 1px solid var(--accent-dim);
@@ -186,14 +181,12 @@
 
   <main class="about-wrapper">
 
-    <!-- Personnel file header -->
     <div class="file-header">
       <div class="file-header__stamp">⊙ PERSONNEL FILE — MODULE-04</div>
       <div class="file-header__grid">
         <div class="file-field">
           <span class="file-field__label">Designation</span>
-          <!-- EDIT THIS: replace with your chosen alias/handle -->
-          <span class="file-field__value">THE ARCHITECT</span>
+          <span class="file-field__value">BLACKWOOD</span>
         </div>
         <div class="file-field">
           <span class="file-field__label">Status</span>
@@ -201,8 +194,7 @@
         </div>
         <div class="file-field">
           <span class="file-field__label">Role</span>
-          <!-- EDIT THIS -->
-          <span class="file-field__value">Builder of the Universe</span>
+          <span class="file-field__value">Architect of the Kynar System</span>
         </div>
         <div class="file-field">
           <span class="file-field__label">Identity</span>
@@ -211,48 +203,53 @@
       </div>
     </div>
 
-    <!-- In-universe section -->
+    <!-- In-universe -->
     <section class="about-section">
       <div class="about-section__label">In-Universe</div>
       <div class="universe-note">
-        <strong>// Archivist Note</strong>
-        <!-- EDIT THIS: write your in-universe persona — who are you in the Kynar world? -->
-        The entity responsible for the construction and maintenance of this system
-        has not been formally identified. What is known: they have access to the archive,
-        they built the interface through which you are reading this, and they chose
-        to make it accessible to unauthorised visitors.
+        <strong>// Archivist Note — Cross-Reference: BLACKWOOD</strong>
+        Blackwood is the designated Architect of the Kynar system. The infrastructure
+        you are navigating — the archive, the interface, the access protocols — all of it
+        was built by this individual. Why they made it accessible to unauthorised visitors
+        is not recorded in any document held at this clearance level.
         <br><br>
-        Whether this was a deliberate act or an oversight is not recorded.
-        The Archivist considers both possibilities equally unsettling.
+        What is known: Blackwood did not inherit this system. They built it from nothing.
+        Every layer, every node, every redacted file — deliberate decisions made by one person
+        who decided the universe needed to exist, and then made it exist.
+        <br><br>
+        Current whereabouts: unknown. Continued activity: confirmed.
       </div>
     </section>
 
-    <!-- Personal section -->
+    <!-- Personal -->
     <section class="about-section">
       <div class="about-section__label">Personal</div>
       <div class="about-section__body">
-        <!-- EDIT THIS: write about yourself — who you are, what you're building, why -->
         <p>
-          I built Kynar Universe because I wanted a space that was entirely mine —
-          not a template, not a portfolio, not a profile. A world.
-          Something that exists whether anyone visits it or not.
+          I go by Blackwood. I built this. All of it — the interface, the world,
+          the game, the lab. Not because I was asked to, not because it serves
+          a purpose someone else defined. Because I wanted something that was
+          entirely mine, designed exactly the way I wanted it, existing on my
+          own terms.
         </p>
         <p>
-          I'm teaching myself to build things properly. HTML, CSS, JavaScript.
-          The lab is where that happens in public. The world is where the fiction lives.
-          The game is where they meet.
+          I care equally about how things are built and how they look.
+          The code matters. The design matters. Neither one works without the other
+          and I'm not interested in choosing. Kynar Universe is what happens when
+          both of those instincts run in the same direction at the same time.
         </p>
         <p>
-          I don't have a name on this site. That's intentional.
-          What I make is here. That's enough.
+          I'm still learning. The lab exists because of that —
+          it's where things get made in public, where experiments either hold together
+          or they don't. The world is being written as it's being built.
+          That's not a limitation. That's the point.
         </p>
       </div>
     </section>
 
     <!-- Skills -->
     <section class="about-section">
-      <div class="about-section__label">Tools & Skills</div>
-      <!-- EDIT THIS: add/remove skills as your actual stack -->
+      <div class="about-section__label">Tools & Stack</div>
       <div class="skills-grid">
         <div class="skill-tag">HTML</div>
         <div class="skill-tag">CSS</div>
@@ -260,6 +257,9 @@
         <div class="skill-tag">Canvas API</div>
         <div class="skill-tag">GitHub Pages</div>
         <div class="skill-tag">SPCK Editor</div>
+        <div class="skill-tag">Git</div>
+        <div class="skill-tag">Responsive Design</div>
+        <div class="skill-tag">CSS Animation</div>
       </div>
     </section>
 
@@ -268,13 +268,13 @@
       <div class="about-section__label">What This Is</div>
       <div class="about-section__body">
         <p>
-          Kynar Universe is an ongoing project. The world is being built as you read this.
-          The lore is incomplete by design — not everything is known yet,
-          and some things are kept redacted on purpose.
+          Kynar Universe is a living project. The lore is incomplete because
+          the universe is still being written. The lab grows because the building
+          never stops. The game expands as the world does.
         </p>
         <p>
-          The lab grows as I build. The game will expand as the world does.
-          Come back.
+          Nothing here is finished. Everything here is real.
+          Come back and something will have changed.
         </p>
       </div>
     </section>
