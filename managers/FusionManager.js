@@ -1,13 +1,23 @@
 import Card from '../entities/Card.js';
+import { FUSION_NAMES } from '../data/fusions.js';
 
 export default class FusionManager {
     constructor(scene) {
         this.scene = scene;
+        this.particles = new (await import('../systems/ParticleSystem.js')).default(scene);
     }
 
     performFusion(cardA, cardB) {
+        if (!cardA || !cardB || !cardA.active || !cardB.active) {
+            console.warn("Fusion aborted - invalid cards");
+            return;
+        }
+
         cardA.disableInteractive();
         cardB.disableInteractive();
+
+        this.scene.cameras.main.shake(120, 0.008);
+        this.particles.burst(cardB.x, cardB.y, 0xffaa00, 35);
 
         this.scene.tweens.add({
             targets: cardA,
@@ -36,6 +46,10 @@ export default class FusionManager {
                 const newCard = new Card(this.scene, cardB.x, cardB.y, newStats, true);
                 this.scene.eventBus.emit('fusion-complete', { newCard, name: newName });
                 this.unlockDiscovery(newName);
+                this.particles.burst(newCard.x, newCard.y, 0xffffff, 20);
+
+                // Auto-save after fusion
+                if (this.scene.saveSystem) this.scene.saveSystem.save();
             }
         });
     }
@@ -44,7 +58,7 @@ export default class FusionManager {
         const key = name.toLowerCase().replace(/\s/g, '_');
         if (!this.scene.discoveredEntries.includes(key)) {
             this.scene.discoveredEntries.push(key);
-            localStorage.setItem('fusion_discovery', JSON.stringify(this.scene.discoveredEntries));
+            if (this.scene.saveSystem) this.scene.saveSystem.save();
             this.scene.uiManager.createToast(`New Fusion Unlocked: ${name}`);
         }
     }

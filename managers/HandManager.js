@@ -1,11 +1,12 @@
 import Card from '../entities/Card.js';
+import { CONSTANTS } from '../core/Constants.js';
 
 export default class HandManager {
     constructor(scene) {
         this.scene = scene;
-        this.slotPositions = [65, 145, 225, 305, 385];
-        this.handY = 700;
-        this.baseDepth = 10;
+        this.slotPositions = CONSTANTS.HAND.SLOT_POSITIONS;
+        this.handY = CONSTANTS.HAND.Y;
+        this.baseDepth = CONSTANTS.HAND.BASE_DEPTH;
     }
 
     organize() {

@@ -1,0 +1,19 @@
+# Spck Editor temp files
+.spck/
+*.tmp
+*.swp
+
+# Build / deploy artifacts
+dist/
+build/
+node_modules/
+
+# Logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Local save data (optional - remove if you want to keep saves in repo)
+# fusiongod_save (but we keep it out for privacy)

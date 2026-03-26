@@ -1,4 +1,6 @@
 import Card from '../entities/Card.js';
+import { DUNGEON_DATA, getRandomDungeonKey } from '../data/dungeon.js';
+import { CONSTANTS } from '../core/Constants.js';
 
 export default class DungeonManager {
     constructor(scene) {
@@ -11,12 +13,12 @@ export default class DungeonManager {
             if (!this.dungeonRow[i] || !this.dungeonRow[i].active) {
                 const randomKey = getRandomDungeonKey();
                 const data = DUNGEON_DATA[randomKey];
-                const dungeonCard = new Card(this.scene, 100 + (i * 125), -200, data, false);
+                const dungeonCard = new Card(this.scene, 100 + (i * CONSTANTS.DUNGEON.CARD_SPACING), CONSTANTS.DUNGEON.START_Y, data, false);
                 this.dungeonRow[i] = dungeonCard;
 
                 this.scene.tweens.add({
                     targets: dungeonCard,
-                    y: 200,
+                    y: CONSTANTS.DUNGEON.ROW_Y,
                     duration: 600,
                     ease: 'Back.easeOut',
                     delay: i * 150
@@ -26,6 +28,10 @@ export default class DungeonManager {
     }
 
     handleInteraction(playerCard, dungeonCard) {
+        if (!playerCard || !dungeonCard || !playerCard.active || !dungeonCard.active) return;
+
+        this.scene.cameras.main.shake(80, 0.006);
+
         const type = dungeonCard.cardData.type;
         if (type === 'enemy') {
             this.scene.eventBus.emit('battle-start', { playerCard, dungeonCard });
@@ -42,5 +48,7 @@ export default class DungeonManager {
             playerCard.kill();
             this.scene.eventBus.emit('dungeon-updated');
         }
+
+        if (this.scene.saveSystem) this.scene.saveSystem.save();
     }
 }
