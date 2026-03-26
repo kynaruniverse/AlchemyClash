@@ -2,27 +2,21 @@ export class LoadingScreen extends Phaser.Scene {
     constructor() { super('LoadingScreen'); }
 
     preload() {
-        let width = this.cameras.main.width;
-        let height = this.cameras.main.height;
+        // Create a simple text "Loading..." so we know it's working
+        this.add.text(180, 280, 'LOADING...', { fill: '#ffffff' }).setOrigin(0.5);
 
-        // AAA Progress Bar UI
-        let progressBar = this.add.graphics();
-        let progressBox = this.add.graphics();
-        progressBox.fillStyle(0x222222, 0.8);
-        progressBox.fillRect(60, 300, 240, 30);
-
-        this.load.on('progress', (value) => {
-            progressBar.clear();
-            progressBar.fillStyle(0xff0055, 1);
-            progressBar.fillRect(70, 310, 220 * value, 10);
+        // ERROR HANDLING: This stops the game from hanging if a file is missing
+        this.load.on('loaderror', (file) => {
+            console.warn('File failed to load: ' + file.src);
         });
 
-        // Load Placeholders for now
-        this.load.image('bg_menu', 'https://placehold.co/360x640/1a1a2e/white?text=Main+Menu');
+        // Use standard placeholders that definitely exist online
+        this.load.image('bg_menu', 'https://picsum.photos/360/640'); 
         this.load.image('card_back', 'https://placehold.co/80x110/333333/white?text=Alchemy');
     }
 
     create() {
+        console.log("Loading Complete. Switching to MainMenu.");
         this.scene.start('MainMenu');
     }
 }

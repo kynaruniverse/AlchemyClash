@@ -1,6 +1,7 @@
 import { LoadingScreen } from './src/screens/loadingScreen.js';
 import { MainMenu } from './src/screens/mainMenu.js';
 import { DuelScreen } from './src/screens/duelScreen.js';
+// ... rest of config
 
 const config = {
     type: Phaser.AUTO,
