@@ -1,20 +1,19 @@
 /**
- * FUSIONGOD - Main Engine (Phase 1 Refactored)
- * Now using EventBus + Card class
+ * FUSIONGOD - Main Engine (Phase 2 Complete + Folders Set Up)
+ * All managers are now proper classes + full EventBus
  */
 
-import './EventBus.js';
-import Card from './Card.js';
+import './core/EventBus.js';
+import Card from './entities/Card.js';
+import HandManager from './managers/HandManager.js';
+import UIManager from './managers/UIManager.js';
+import FusionManager from './managers/FusionManager.js';
+import DungeonManager from './managers/DungeonManager.js';
 
 const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        width: 450, 
-        height: 800
-    },
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: 450, height: 800 },
     physics: { default: 'arcade', arcade: { debug: false } },
     scene: { preload, create, update }
 };
@@ -27,58 +26,44 @@ function preload() {
 }
 
 function create() {
-    console.log("FUSIONGOD v3.90.0 Phase 1 Ready");
+    console.log("FUSIONGOD v3.90.0 Phase 2 + Folders Ready ⚡");
 
-    // Player State
     this.playerStats = { hp: 100, maxHp: 100, gold: 0, depth: 1 };
     this.discoveredEntries = JSON.parse(localStorage.getItem('fusion_discovery')) || ['fire', 'water', 'wolf'];
 
-    // HUD (still using ui.js for now)
+    // Instantiate all managers
+    this.handManager = new HandManager(this);
+    this.uiManager = new UIManager(this);
+    this.fusionManager = new FusionManager(this);
+    this.dungeonManager = new DungeonManager(this);
+
+    // HUD
     this.hpText = this.add.text(20, 20, '', { fontFamily: 'Orbitron', fontSize: '24px', color: '#ff4b2b' });
     this.goldText = this.add.text(20, 50, '', { fontFamily: 'Orbitron', fontSize: '20px', color: '#ffd700' });
-    if (typeof updateHUD === 'function') updateHUD(this);
+    this.uiManager.updateHUD();
 
     // Hand area background
     this.add.rectangle(225, 700, 400, 150, 0x1a1a1a).setStrokeStyle(2, 0xffd700, 0.5);
 
-    // Initial cards using NEW Card class
+    // Spawn starting cards
     new Card(this, 150, 700, ELEMENT_DATA['fire'], true);
     new Card(this, 300, 700, ELEMENT_DATA['wolf'], true);
 
-    // Dungeon row setup
-    this.dungeonRow = [null, null, null];
-    this.fillDungeonRow = () => {
-        for (let i = 0; i < 3; i++) {
-            if (!this.dungeonRow[i] || !this.dungeonRow[i].active) {
-                const randomKey = getRandomDungeonKey();
-                const data = DUNGEON_DATA[randomKey];
-                const dungeonCard = new Card(this, 100 + (i * 125), -200, data, false);
-                this.dungeonRow[i] = dungeonCard;
+    // Fill dungeon
+    this.dungeonManager.fillRow();
 
-                this.tweens.add({
-                    targets: dungeonCard,
-                    y: 200,
-                    duration: 600,
-                    ease: 'Back.easeOut',
-                    delay: i * 150
-                });
-            }
-        }
-    };
-
-    this.fillDungeonRow();
-
-    // Listen for drag events (this replaces the old dragend logic)
+    // Global EventBus listeners
     this.eventBus.on('card-dragend', ({ card }) => {
-        // We’ll move the full fusion/check logic here in Phase 2
-        console.log("Card dropped:", card.cardData.name);
-        // Temporary: just reorganize hand for player cards
-        if (card.isPlayerCard) {
-            if (typeof organizeHand === 'function') organizeHand(this);
-        }
+        if (card.isPlayerCard) this.handManager.organize();
     });
+
+    this.eventBus.on('fusion-complete', () => this.handManager.organize());
+    this.eventBus.on('dungeon-updated', () => {
+        this.dungeonManager.fillRow();
+        this.handManager.organize();
+    });
+
+    console.log("All managers loaded and listening");
 }
 
-function update() {
-    // Empty for now - we'll add loop logic later
-}
+function update() {}
