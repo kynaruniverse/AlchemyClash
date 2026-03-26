@@ -1,7 +1,5 @@
-/**
- * FUSIONGOD - FusionManager Class (Phase 2)
- * All fusion + discovery logic moved here
- */
+import Card from '../entities/Card.js';
+
 export default class FusionManager {
     constructor(scene) {
         this.scene = scene;

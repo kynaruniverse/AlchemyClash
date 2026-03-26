@@ -1,7 +1,5 @@
-/**
- * FUSIONGOD - HandManager Class (Phase 2)
- * Clean, reusable, EventBus-aware
- */
+import Card from '../entities/Card.js';
+
 export default class HandManager {
     constructor(scene) {
         this.scene = scene;
@@ -11,7 +9,6 @@ export default class HandManager {
     }
 
     organize() {
-        // Only active player cards that are NOT being dragged
         const cards = this.scene.children.list.filter(child => 
             child instanceof Card && 
             child.isPlayerCard && 
@@ -22,7 +19,6 @@ export default class HandManager {
         cards.forEach((card, index) => {
             if (index < this.slotPositions.length) {
                 card.setDepth(this.baseDepth + index);
-
                 this.scene.tweens.add({
                     targets: card,
                     x: this.slotPositions[index],
@@ -31,8 +27,8 @@ export default class HandManager {
                     alpha: 1,
                     duration: 400,
                     ease: 'Cubic.easeOut',
-                    onStart: () => card.disableInteractive && card.disableInteractive(),
-                    onComplete: () => card.setInteractive && card.setInteractive()
+                    onStart: () => { if (card.disableInteractive) card.disableInteractive(); },
+                    onComplete: () => { if (card.setInteractive) card.setInteractive(); }
                 });
             } else {
                 card.setPosition(this.slotPositions[4], this.handY);

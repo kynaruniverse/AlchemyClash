@@ -1,7 +1,5 @@
-/**
- * FUSIONGOD - DungeonManager Class (Phase 2)
- * Spawning, filling row, depth scaling prep
- */
+import Card from '../entities/Card.js';
+
 export default class DungeonManager {
     constructor(scene) {
         this.scene = scene;
