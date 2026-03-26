@@ -4,6 +4,7 @@
  */
 
 import './core/EventBus.js';
+import './database.js';                    // ← This line fixes the white screen
 import Card from './entities/Card.js';
 import HandManager from './managers/HandManager.js';
 import UIManager from './managers/UIManager.js';
