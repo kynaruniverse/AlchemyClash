@@ -1,5 +1,5 @@
 /**
- * FUSIONGOD - Main Engine (Phase 5 Robustness Complete)
+ * FUSIONGOD - Main Engine (Phase 6 + Interaction Fix + Crisp Rendering)
  */
 
 import './core/EventBus.js';
@@ -17,9 +17,17 @@ import SaveSystem from './systems/SaveSystem.js';
 const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: 450, height: 800 },
+    scale: { 
+        mode: Phaser.Scale.FIT, 
+        autoCenter: Phaser.Scale.CENTER_BOTH, 
+        width: 450, 
+        height: 800 
+    },
     physics: { default: 'arcade', arcade: { debug: false } },
-    scene: { preload, create, update }
+    scene: { preload, create, update },
+    // Crisp rendering fixes (fixes blurry cards/text)
+    pixelArt: true,
+    roundPixels: true
 };
 
 const game = new Phaser.Game(config);
@@ -29,10 +37,10 @@ function preload() {
 }
 
 function create() {
-    console.log("FUSIONGOD v3.90.0 Phase 5 ROBUST Ready ⚡");
+    console.log("FUSIONGOD v3.90.0 — Interactions + Crisp Fixed ⚡");
 
     this.saveSystem = new SaveSystem(this);
-    const loaded = this.saveSystem.load();
+    this.saveSystem.load();
 
     this.playerStats = this.playerStats || { hp: 100, maxHp: 100, gold: 0, depth: 1 };
     this.discoveredEntries = this.discoveredEntries || ['fire', 'water', 'wolf'];
@@ -52,26 +60,45 @@ function create() {
     new Card(this, 300, 700, ELEMENT_DATA['wolf'], true);
     this.dungeonManager.fillRow();
 
-    // Onboarding (only first time)
-    if (!loaded) {
+    // === ONBOARDING ===
+    if (!this.saveSystem.load()) {
         this.time.delayedCall(800, () => this.uiManager.createToast("👉 Drag cards onto each other to FUSE!"));
         this.time.delayedCall(3200, () => this.uiManager.createToast("👉 Drag a card up to the dungeon row!"));
     }
 
-    // Event listeners with safety
+    // === FIXED DRAG DROP LOGIC (this was missing) ===
     this.eventBus.on('card-dragend', ({ card }) => {
-        if (card && card.isPlayerCard) this.handManager.organize();
+        if (!card) return;
+
+        // Check for fusion or dungeon interaction
+        const targets = this.children.list.filter(c => 
+            c instanceof Card && c !== card && c.active
+        );
+
+        let actionTaken = false;
+        for (let target of targets) {
+            const dist = Phaser.Math.Distance.Between(card.x, card.y, target.x, target.y);
+            if (dist < 80) {   // close enough = interact
+                if (card.isPlayerCard && target.isPlayerCard) {
+                    this.fusionManager.performFusion(card, target);
+                    actionTaken = true;
+                } else if (card.isPlayerCard && target.isDungeonEntity) {
+                    this.dungeonManager.handleInteraction(card, target);
+                    actionTaken = true;
+                }
+                break;
+            }
+        }
+
+        if (!actionTaken && card.isPlayerCard) {
+            this.handManager.organize();
+        }
     });
+
     this.eventBus.on('fusion-complete', () => this.handManager.organize());
     this.eventBus.on('dungeon-updated', () => {
         this.dungeonManager.fillRow();
         this.handManager.organize();
-    });
-
-    // Cleanup on shutdown
-    this.events.once('shutdown', () => {
-        console.log("🧹 Cleaning up FusionGod");
-        this.eventBus.off(); // clear all listeners
     });
 }
 
