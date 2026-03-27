@@ -1,6 +1,6 @@
 /**
- * ALCHEMY CLASH: ENVIRONMENT MANAGER
- * Handles the 3D Arena, Animated Starfield, and Cyber-Grid Floor.
+ * ALCHEMY CLASH: AAA ENVIRONMENT & ARENA
+ * Manages the 3D Backdrop, Cyber-Grid, and Animated Nebula.
  */
 
 import * as THREE from 'three';
@@ -9,86 +9,103 @@ export class Environment {
     constructor(scene) {
         this.scene = scene;
         this.stars = null;
+        this.grid = null;
         this.init();
     }
 
     init() {
-        // 1. Scene Atmosphere: Deep Void Fog
-        // This creates the AAA "fading into darkness" look for the grid
-        this.scene.fog = new THREE.FogExp2(0x05050a, 0.05);
+        // 1. Fog: Deep Space Atmosphere
+        // Prevents the "infinite edge" look on high-res displays
+        this.scene.fog = new THREE.FogExp2(0x05050a, 0.04);
 
-        // 2. The Cyber-Grid Floor
-        const size = 40; // Increased size for camera fly-in coverage
-        const divisions = 40;
-        const gridColor = 0x00ffff;
-        const centerColor = 0x112244;
-        
-        const grid = new THREE.GridHelper(size, divisions, gridColor, centerColor);
-        grid.rotation.x = Math.PI / 2; 
-        grid.position.z = -0.8; // Set safely behind cards (z=0) and lanes (z=0.1)
-        
-        // Enhance grid visibility with slight transparency
-        grid.material.transparent = true;
-        grid.material.opacity = 0.15;
-        this.scene.add(grid);
+        // 2. The Cyber-Grid Floor (Tactical Overlay)
+        this.setupGrid();
 
-        // 3. Cinematic Animated Star-field
+        // 3. Cinematic Twinkling Starfield
         this.createStarfield();
 
-        // 4. Soft Arena Glow (Backdrop)
-        const glowGeo = new THREE.PlaneGeometry(100, 100);
+        // 4. Arena Glow (Ambient Backdrop)
+        const glowGeo = new THREE.SphereGeometry(100, 32, 32);
         const glowMat = new THREE.MeshBasicMaterial({
-            color: 0x020205, // Ultra dark blue-black
-            side: THREE.DoubleSide,
-            depthWrite: false // Prevents the backdrop from blocking transparency
+            color: 0x020205,
+            side: THREE.BackSide, // Inside out sphere
+            transparent: true,
+            opacity: 0.9
         });
-        const background = new THREE.Mesh(glowGeo, glowMat);
-        background.position.z = -2; // The absolute furthest layer
-        this.scene.add(background);
+        const dome = new THREE.Mesh(glowGeo, glowMat);
+        this.scene.add(dome);
+        
+        // Start Global Animation
+        this.animate();
     }
 
-    /**
-     * Creates a randomized 3D particle field for the background
-     */
+    setupGrid() {
+        const size = 60;
+        const divisions = 30;
+        const color = 0x00ffff;
+        
+        this.grid = new THREE.GridHelper(size, divisions, color, 0x112233);
+        this.grid.rotation.x = Math.PI / 2; 
+        this.grid.position.z = -1.0; 
+        
+        this.grid.material.transparent = true;
+        this.grid.material.opacity = 0.1;
+        this.scene.add(this.grid);
+
+        // Pulse the grid opacity for a "living" machine feel
+        gsap.to(this.grid.material, {
+            opacity: 0.25,
+            duration: 4,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+        });
+    }
+
     createStarfield() {
         const starGeo = new THREE.BufferGeometry();
-        const starCount = 2000; // Denser field for high-res mobile screens
+        const starCount = 3000;
         const posArray = new Float32Array(starCount * 3);
+        const sizeArray = new Float32Array(starCount); // For individual twinkling
 
-        for (let i = 0; i < starCount * 3; i++) {
-            // Distribute stars in a large sphere around the center
-            posArray[i] = (Math.random() - 0.5) * 150;
+        for (let i = 0; i < starCount; i++) {
+            const i3 = i * 3;
+            // Spread stars in a sphere but keep them mostly behind the board
+            posArray[i3] = (Math.random() - 0.5) * 200;
+            posArray[i3 + 1] = (Math.random() - 0.5) * 200;
+            posArray[i3 + 2] = -50 - (Math.random() * 100);
+            
+            sizeArray[i] = Math.random();
         }
 
         starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        starGeo.setAttribute('size', new THREE.BufferAttribute(sizeArray, 1));
 
         const starMat = new THREE.PointsMaterial({
-            size: 0.08,
+            size: 0.15,
             color: 0xffffff,
             transparent: true,
-            opacity: 0.6,
-            sizeAttenuation: true // Stars further away appear smaller
+            opacity: 0.8,
+            sizeAttenuation: true,
+            blending: THREE.AdditiveBlending
         });
 
         this.stars = new THREE.Points(starGeo, starMat);
-        this.stars.position.z = -5; // Behind everything
         this.scene.add(this.stars);
-
-        // Start the subtle rotation loop
-        this.animateStars();
     }
 
-    /**
-     * Subtle animation to make the background feel "alive"
-     */
-    animateStars() {
-        const update = () => {
-            if (this.stars) {
-                this.stars.rotation.z += 0.0002; // Very slow crawl
-                this.stars.rotation.y += 0.0001;
-            }
-            requestAnimationFrame(update);
-        };
-        update();
+    animate() {
+        const time = Date.now() * 0.001;
+
+        if (this.stars) {
+            // Subtle orbital drift
+            this.stars.rotation.z += 0.0001;
+            this.stars.rotation.y += 0.00005;
+
+            // Twinkle effect (Scale manipulation)
+            this.stars.material.size = 0.15 + Math.sin(time * 2) * 0.05;
+        }
+
+        requestAnimationFrame(() => this.animate());
     }
 }

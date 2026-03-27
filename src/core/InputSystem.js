@@ -1,7 +1,6 @@
 /**
- * ALCHEMY CLASH: INPUT SYSTEM
- * Converts Screen Touches/Mouse into 3D World interactions.
- * Handles Drag-and-Drop, Snapping Logic, and Input Gating.
+ * ALCHEMY CLASH: AAA INPUT SYSTEM
+ * Handles 3D Raycasting, Drag-and-Drop Physics, and Mobile Touch Gating.
  */
 
 import * as THREE from 'three';
@@ -11,38 +10,37 @@ export class InputSystem {
         this.engine = engine;
         this.duelMgr = duelMgr;
         
-        // Internal state
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
+        
+        // Interaction State
         this.selectedCard = null;
         this.isDragging = false;
-        this.startPos = new THREE.Vector3();
-        
-        // Input Gate: Set to true only after the "Battle Transition"
         this.enabled = false; 
-
-        // Mathematical plane representing the board surface
+        
+        // Physics Helpers
         this.dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
         this.intersection = new THREE.Vector3();
+        this.offset = new THREE.Vector3();
+        this.originalPos = new THREE.Vector3();
 
         this.init();
     }
 
     init() {
-        // Desktop Mouse Listeners
-        window.addEventListener('mousedown', (e) => this.onDown(e));
-        window.addEventListener('mousemove', (e) => this.onMove(e));
-        window.addEventListener('mouseup', () => this.onUp());
+        const options = { passive: false };
 
-        // Mobile Touch Listeners (with passive: false to allow preventDefault)
-        window.addEventListener('touchstart', (e) => this.onDown(e.touches[0]), { passive: false });
-        window.addEventListener('touchmove', (e) => this.onMove(e.touches[0]), { passive: false });
-        window.addEventListener('touchend', () => this.onUp());
+        // Desktop
+        window.addEventListener('mousedown', (e) => this.onDown(e), options);
+        window.addEventListener('mousemove', (e) => this.onMove(e), options);
+        window.addEventListener('mouseup', (e) => this.onUp(e), options);
+
+        // Mobile
+        window.addEventListener('touchstart', (e) => this.onDown(e.touches[0]), options);
+        window.addEventListener('touchmove', (e) => this.onMove(e.touches[0]), options);
+        window.addEventListener('touchend', (e) => this.onUp(e.changedTouches[0]), options);
     }
 
-    /**
-     * Updates the internal mouse vector from screen coordinates
-     */
     updateMouse(e) {
         this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
         this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
@@ -54,77 +52,78 @@ export class InputSystem {
         this.updateMouse(e);
         this.raycaster.setFromCamera(this.mouse, this.engine.camera);
         
-        // Detect if we hit a card that hasn't been played yet
-        const hits = this.raycaster.intersectObjects(this.engine.scene.children);
-        const cardHit = hits.find(h => 
-            h.object.userData.type === 'CARD' && 
-            !h.object.userData.isPlayed &&
-            h.object.userData.owner === 'PLAYER'
+        const intersects = this.raycaster.intersectObjects(this.engine.scene.children, true);
+        const cardHit = intersects.find(h => 
+            h.object.parent?.userData?.type === 'CARD' || h.object.userData.type === 'CARD'
         );
-        
-        if (cardHit) {
-            // Show details on click/tap
-            this.duelMgr.ui.showCardDetail(cardHit.object.userData.data);
-            
-            // Audio: Drag Whoosh
-            if (this.duelMgr.audio) this.duelMgr.audio.play('DRAG', 0.3);
 
-            this.selectedCard = cardHit.object;
+        const target = cardHit?.object.userData.type === 'CARD' ? cardHit.object : cardHit?.object.parent;
 
-
+        if (target && target.userData.owner === 'PLAYER' && !target.userData.isPlayed) {
+            this.selectedCard = target;
             this.isDragging = true;
-            this.startPos.copy(this.selectedCard.position);
+            this.originalPos.copy(target.position);
+
+            // Calculate offset to prevent "jumping" when grabbed
+            if (this.raycaster.ray.intersectPlane(this.dragPlane, this.intersection)) {
+                this.offset.copy(this.intersection).sub(target.position);
+            }
+
+            // AAA Animation: Lift and Glow
+            gsap.to(target.position, { z: 2, duration: 0.2, ease: "power2.out" });
+            gsap.to(target.scale, { x: 1.1, y: 1.1, z: 1.1, duration: 0.2 });
             
-            // AAA Lift Animation: Use "Back" ease for a springy weight feel
-            gsap.to(this.selectedCard.position, { z: 1.2, duration: 0.25, ease: "back.out(2)" });
-            gsap.to(this.selectedCard.scale, { x: 1.15, y: 1.15, duration: 0.25 });
+            if (this.duelMgr.audio) this.duelMgr.audio.play('PICKUP', 0.2);
         }
     }
 
     onMove(e) {
         if (!this.isDragging || !this.selectedCard) return;
         
-        // Prevent mobile browser scrolling while dragging
-        if (e.cancelable) e.preventDefault();
+        // Block browser ghost-scrolling
+        if (e.preventDefault) e.preventDefault();
 
         this.updateMouse(e);
         this.raycaster.setFromCamera(this.mouse, this.engine.camera);
 
-        // Calculate position on the invisible drag plane
         if (this.raycaster.ray.intersectPlane(this.dragPlane, this.intersection)) {
-            // Smoothly move card toward intersection point (z=1 to keep it "hovering")
-            this.selectedCard.position.set(
-                this.intersection.x,
-                this.intersection.y,
-                1.2
-            );
+            const newPos = this.intersection.sub(this.offset);
+            
+            // Apply position with a hover height (z=2)
+            this.selectedCard.position.set(newPos.x, newPos.y, 2);
+
+            // Dynamic Tilt (Juice): Card tilts as it moves
+            const tiltX = (newPos.y - this.originalPos.y) * 0.1;
+            const tiltY = (newPos.x - this.originalPos.x) * -0.1;
+            gsap.to(this.selectedCard.rotation, {
+                x: tiltX,
+                y: tiltY,
+                duration: 0.1
+            });
         }
     }
 
-    onUp() {
+    onUp(e) {
         if (!this.selectedCard) return;
 
-        // Ask DuelManager if we are hovering over a valid lane
-        const snapped = this.duelMgr.checkSnap(this.selectedCard);
-        
-        if (!snapped) {
-            // REJECTED: Spring the card back to its original position in hand
+        // Check with DuelManager if drop is valid
+        const success = this.duelMgr.tryPlayCard(this.selectedCard);
+
+        if (!success) {
+            // Snap back to hand
             gsap.to(this.selectedCard.position, {
-                x: this.startPos.x,
-                y: this.startPos.y,
+                x: this.originalPos.x,
+                y: this.originalPos.y,
                 z: 0,
-                duration: 0.45,
-                ease: "power3.out"
+                duration: 0.5,
+                ease: "elastic.out(1, 0.75)"
             });
-            
-            // Flip back to face up if it was accidentally tilted
-            gsap.to(this.selectedCard.rotation, { y: 0, duration: 0.3 });
+            gsap.to(this.selectedCard.rotation, { x: 0, y: 0, z: 0, duration: 0.3 });
         }
 
-        // Return scale to normal
-        gsap.to(this.selectedCard.scale, { x: 1, y: 1, duration: 0.2 });
+        gsap.to(this.selectedCard.scale, { x: 1, y: 1, z: 1, duration: 0.2 });
         
-        this.isDragging = false;
         this.selectedCard = null;
+        this.isDragging = false;
     }
 }

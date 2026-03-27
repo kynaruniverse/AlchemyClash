@@ -1,16 +1,23 @@
 {
-  "name": "Alchemy Clash",
+  "name": "Alchemy Clash: TCG",
   "short_name": "Alchemy",
+  "description": "A high-fidelity 3D tactical card battler.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#05050a",
-  "theme_color": "#ff0055",
+  "theme_color": "#00ffff",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://placehold.co/192x192/png?text=AC",
+      "src": "https://placehold.co/192x192/05050a/00ffff?text=AC",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://placehold.co/512x512/05050a/00ffff?text=ALCHEMY",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ]
 }

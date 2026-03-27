@@ -1,9 +1,16 @@
 /**
- * ALCHEMY CLASH: STATE-BASED MAIN ORCHESTRATOR
- * Swaps clean screens (Splash -> Menu -> Deck Builder -> Battle) to solve overlap issues.
+ * ALCHEMY CLASH: AAA STATE ORCHESTRATOR
+ * Orchestrates: Splash -> Main Menu -> Deck Builder -> 3D Battle
  */
 
-// Critical: Ensure these paths match your case-sensitive folder sidebar exactly
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then(reg => console.log('Alchemy Clash: PWA Ready.'))
+            .catch(err => console.log('SW Registration Failed:', err));
+    });
+}
+
 import { Engine3D } from './src/core/Engine3D.js';
 import { CardFactory } from './src/core/CardFactory.js';
 import { InputSystem } from './src/core/InputSystem.js';
@@ -18,29 +25,28 @@ import { DeckBuilder } from './src/ui/DeckBuilder.js';
 class GameBootstrapper {
     constructor() {
         console.log("-----------------------------------------");
-        console.log("ALCHEMY CLASH: Init (New State Architecture)");
+        console.log("ALCHEMY CLASH: State Architecture Online");
         
-        // 1. Core Systems Init
+        // 1. System Refs
         this.app = null;
         this.duel = null;
         this.input = null;
         this.audio = new AudioManager();
         
-        // 2. The Dynamic UI Hub
+        // 2. DOM Containers
         this.uiHub = document.getElementById('ui-container');
         this.battleContainer = document.getElementById('game-container');
         
-        // 3. Kickoff the flow: Screen 1: Splash
+        // 3. Launch
         this.initSplashScreen();
     }
 
     /**
-     * CLEAN STATE 1: AAA Splash Screen
-     * Simple, centered, impossible to overlap.
+     * STATE 1: SPLASH SCREEN
      */
     initSplashScreen() {
-        console.log("State: Splash");
-        this.uiHub.innerHTML = ''; // Sanitize container
+        console.log("Entering State: Splash");
+        this.uiHub.innerHTML = ''; 
 
         const splash = document.createElement('div');
         splash.id = 'splash-screen';
@@ -54,36 +60,20 @@ class GameBootstrapper {
         `;
         
         this.uiHub.appendChild(splash);
-
-        // Transition in with GSAP (Guarantees display: flex)
         requestAnimationFrame(() => splash.classList.add('active-screen'));
 
-        // Bind the button. This WILL work now because nothing else exists.
         const enterBtn = document.getElementById('enter-arena-btn');
-        if (enterBtn) {
-            enterBtn.onclick = () => {
-                console.log("Arena Entered: Splashing Menu.");
-                if (this.audio) this.audio.play('SNAP', 0.5); // Feedback!
-                this.gotoMenuState(splash);
-            };
-        } else {
-            console.error("Critical: Splash button not found.");
-        }
+        enterBtn.onclick = () => {
+            if (this.audio) this.audio.play('SNAP', 0.5);
+            this.transitionState(splash, () => this.initMenuScreen());
+        };
     }
 
     /**
-     * CLEAN STATE 2: Marvel Snap Menu
-     * Transition from Splash to the main hub.
+     * STATE 2: MAIN MENU (MARVEL SNAP STYLE)
      */
-    gotoMenuState(outgoingScreen) {
-        gsap.to(outgoingScreen, { opacity: 0, duration: 0.4, onComplete: () => {
-            outgoingScreen.remove(); // Kill the old screen entirely
-            this.initMenuScreen();
-        }});
-    }
-
     initMenuScreen() {
-        console.log("State: Menu (Snap Style)");
+        console.log("Entering State: Menu");
         
         const menu = document.createElement('div');
         menu.id = 'menu-screen';
@@ -94,7 +84,7 @@ class GameBootstrapper {
                     <div id="player-avatar"></div>
                     <div id="player-meta">
                         <div id="player-level">LVL 70</div>
-                        <div id="player-name">TRASHMASTER</div>
+                        <div id="player-name">ALCHEMIST</div>
                     </div>
                 </div>
                 <div id="menu-resources">
@@ -105,12 +95,12 @@ class GameBootstrapper {
 
             <div id="menu-center">
                 <div id="seasonal-mission-banner">
-                    <div>SEASONAL<br>MISSIONS</div>
+                    <div>SEASONAL<br>BATTLE PASS</div>
                 </div>
             </div>
 
             <div id="menu-bottom">
-                <div id="menu-subtext">MASTER THE ELEMENTS</div>
+                <div id="menu-subtext">READY TO DUEL?</div>
                 <div id="play-btn-wrapper">
                     <div id="current-deck-label">STARTER DECK</div>
                     <button id="main-play-btn" class="play-button">PLAY</button>
@@ -118,7 +108,7 @@ class GameBootstrapper {
                 <div id="bottom-nav">
                     <div class="nav-item">Shop</div>
                     <div class="nav-item active-nav">Main</div>
-                    <div class="nav-item">Decks</div>
+                    <div class="nav-item">Collection</div>
                 </div>
             </div>
         `;
@@ -126,145 +116,119 @@ class GameBootstrapper {
         this.uiHub.appendChild(menu);
         requestAnimationFrame(() => menu.classList.add('active-screen'));
 
-        // Marvel Snap logic: "PLAY" opens DeckBuilder first.
         const playBtn = document.getElementById('main-play-btn');
-        if (playBtn) {
-            playBtn.onclick = () => {
-                console.log("Play Clicked: Transitioning to Deck Builder.");
-                if (this.audio) this.audio.play('CLICK', 0.5);
-                this.gotoDeckBuilderState(menu);
+        playBtn.onclick = () => {
+            if (this.audio) this.audio.play('CLICK', 0.5);
+            this.transitionState(menu, () => this.initDeckBuilderState());
+        };
+    }
+
+    /**
+     * STATE 3: DECK BUILDER
+     */
+    initDeckBuilderState() {
+        console.log("Entering State: DeckBuilder");
+        
+        try {
+            // Instantiate DeckBuilder into the UI hub
+            const builder = new DeckBuilder(this.uiHub);
+            
+            // Critical Fix: Define onComplete before calling init
+            builder.onComplete = (selectedDeck) => {
+                console.log("Deck Confirmed:", selectedDeck);
+                if (this.audio) this.audio.play('START', 0.5);
+                this.gotoBattleState(selectedDeck);
             };
+            
+            builder.init(); 
+        } catch (e) {
+            console.error("DeckBuilder Initialization Failed:", e);
         }
     }
 
     /**
-     * CLEAN STATE 3: Deck Builder
-     * Transition from Menu to DeckBuilder.
-     */
-    gotoDeckBuilderState(outgoingScreen) {
-        gsap.to(outgoingScreen, { opacity: 0, duration: 0.3, onComplete: () => {
-            outgoingScreen.remove();
-            
-            // Critical: The existing src/ui/DeckBuilder.js must be capable 
-            // of injecting its own HTML into #ui-container.
-            try {
-                // Initialize Deck Builder with the start callback
-                new DeckBuilder(this.uiHub, (selectedDeck) => {
-                    console.log("Deck Locked:", selectedDeck);
-                    if (this.audio) this.audio.play('START', 0.5);
-                    this.gotoBattleState(selectedDeck);
-                });
-            } catch (e) {
-                console.error("Critical: DeckBuilder failed. Is src/ui/DeckBuilder.js correct?", e);
-            }
-        }});
-    }
-
-    /**
-     * CLEAN STATE 4: The AAA Battle
-     * Transition from the pure 2D interface into the 3D game world.
+     * STATE 4: THE 3D BATTLE
      */
     gotoBattleState(playerDeck) {
-        console.log("State: Battle (Cinematic Jump)");
+        console.log("Transitioning to 3D Battle World...");
         
-        // 1. Sterilize the pure 2D interface hub
-        gsap.to(this.uiHub, { opacity: 0, duration: 0.3, onComplete: () => {
-            this.uiHub.innerHTML = '';
+        gsap.to(this.uiHub, { opacity: 0, duration: 0.4, onComplete: () => {
+            this.uiHub.innerHTML = ''; // Clear DeckBuilder
             
-            // 2. Initialize the heavy 3D Systems now (saves memory)
+            // Load 3D Assets only now to save mobile memory
             this.init3DSystems(playerDeck);
-            
-            // 3. Initialize the Battle HUD (Over the 3D scene)
             this.initBattleHUD();
             
-            // 4. Reveal the 3D container
+            // Cinematic Reveal
             this.battleContainer.style.display = 'block';
-            gsap.to(this.battleContainer, { opacity: 1, duration: 1, delay: 0.5 });
-            gsap.to(this.uiHub, { opacity: 1, duration: 0.5, delay: 1.5 }); // HUD Fades back in
+            gsap.to(this.battleContainer, { opacity: 1, duration: 1.2 });
+            gsap.to(this.uiHub, { opacity: 1, duration: 0.6, delay: 0.8 });
         }});
     }
 
-    /**
-     * Lazily initialize the 3D engine only when needed
-     */
     init3DSystems(playerDeck) {
-        console.log("Initializing 3D Systems...");
-        
         this.app = new Engine3D();
         const world = new Environment(this.app.scene);
         const vfx = new VFXManager(this.app.scene);
         this.app.setVFX(vfx);
 
-        // Game Rules
         this.duel = new DuelManager(this.app.scene, vfx, this.audio);
         this.factory = new CardFactory(this.app.scene);
         this.ai = new AIManager(this.duel, this.factory);
 
-        // Battle HUD reference (needs duel injected)
         this.ui = new Interface(this.duel);
-        
-        // Final Dependencies
         this.duel.ui = this.ui;
         this.duel.ai = this.ai;
-        this.input = new InputSystem(this.app, this.duel);
-        this.input.enabled = false; // Initially disable interaction
 
-        // Trigger the AAA jump!
+        this.input = new InputSystem(this.app, this.duel);
+        this.input.enabled = false; 
+
         this.app.transitionToBattle();
         
-        // Spawn cards and start
         this.factory.spawnDeck(playerDeck, 'PLAYER', () => {
-            console.log("Cards Spawned. Match Start!");
-            this.input.enabled = true; // Match begins!
+            this.input.enabled = true; 
             this.ui.announce("ROUND 1");
             this.ui.updateUI();
         });
     }
 
-    /**
-     * CLEAN STATE 4: Battle HUD (Injects back over 3D world)
-     */
     initBattleHUD() {
-        console.log("Injecting Battle HUD");
-        
         const battleHUD = document.createElement('div');
         battleHUD.id = 'battle-screen';
-        battleHUD.className = 'game-screen';
+        battleHUD.className = 'game-screen active-screen';
         battleHUD.innerHTML = `
             <div id="score-container">
-                <div class="lane-ui">
-                    <div class="enemy-score" id="enemy-0">0</div>
-                    <div class="lane-score" id="score-0">0</div>
-                </div>
-                <div class="lane-ui">
-                    <div class="enemy-score" id="enemy-1">0</div>
-                    <div class="lane-score" id="score-1">0</div>
-                </div>
-                <div class="lane-ui">
-                    <div class="enemy-score" id="enemy-2">0</div>
-                    <div class="lane-score" id="score-2">0</div>
-                </div>
+                <div class="lane-ui"><div class="enemy-score" id="enemy-0">0</div><div class="lane-score" id="score-0">0</div></div>
+                <div class="lane-ui"><div class="enemy-score" id="enemy-1">0</div><div class="lane-score" id="score-1">0</div></div>
+                <div class="lane-ui"><div class="enemy-score" id="enemy-2">0</div><div class="lane-score" id="score-2">0</div></div>
             </div>
-
             <div id="announcer">MATCH START</div>
-
             <div id="bottom-bar">
                 <div class="mana-container">
-                    <div class="mana-hex">
-                        <span id="mana-value">1</span>
-                    </div>
+                    <div class="mana-hex"><span id="mana-value">1</span></div>
                     <div class="mana-label">ENERGY</div>
                 </div>
                 <button id="end-turn-btn">END TURN</button>
             </div>
         `;
-        
         this.uiHub.appendChild(battleHUD);
-        requestAnimationFrame(() => battleHUD.classList.add('active-screen'));
+
+        document.getElementById('end-turn-btn').onclick = () => {
+            if (this.duel) this.duel.processTurn();
+        };
+    }
+
+    /**
+     * UTILITY: Smooth Screen Transitions
+     */
+    transitionState(outgoing, nextStateCallback) {
+        gsap.to(outgoing, { opacity: 0, x: -20, duration: 0.3, onComplete: () => {
+            outgoing.remove();
+            nextStateCallback();
+        }});
     }
 }
 
-// Global initialization on load
 window.addEventListener('DOMContentLoaded', () => {
     window.Game = new GameBootstrapper();
 });

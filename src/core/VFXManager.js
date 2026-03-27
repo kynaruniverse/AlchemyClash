@@ -1,7 +1,6 @@
 /**
- * ALCHEMY CLASH: VFX MANAGER
- * Handles high-performance particle systems for card impacts and reveals.
- * Optimized for mobile GPU memory management.
+ * ALCHEMY CLASH: AAA VFX MANAGER
+ * High-performance Sprite-based particles with Material Pooling.
  */
 
 import * as THREE from 'three';
@@ -10,85 +9,113 @@ export class VFXManager {
     constructor(scene) {
         this.scene = scene;
         this.particles = [];
+        this.textureLoader = new THREE.TextureLoader();
         
-        // Reusable geometry to save memory
-        this.particleGeo = new THREE.SphereGeometry(0.06, 6, 6);
+        // AAA Glow Texture (Procedural radial gradient)
+        this.glowTexture = this.createGlowTexture();
+        
+        // Material Pool to prevent GPU memory bloat
+        this.materialPool = new Map();
+        
+        // Reusable Geometry (Sprites are faster than Meshes for particles)
+        this.particleGeo = new THREE.PlaneGeometry(0.3, 0.3);
     }
 
     /**
-     * Creates a cinematic burst of energy
-     * @param {THREE.Vector3} position - Where the impact occurs
-     * @param {number} color - Hex color of the particles
+     * Creates a soft radial glow texture programmatically
+     */
+    createGlowTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64; canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(255,255,255,1)');
+        gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+        gradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 64, 64);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        return texture;
+    }
+
+    getMaterial(color) {
+        if (!this.materialPool.has(color)) {
+            this.materialPool.set(color, new THREE.MeshBasicMaterial({
+                map: this.glowTexture,
+                color: color,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false
+            }));
+        }
+        return this.materialPool.get(color);
+    }
+
+    /**
+     * Cinematic Impact (Card Reveal)
      */
     createImpact(position, color = 0x00ffff) {
-        const particleCount = 12; // Optimized for mobile performance
-        
-        // Shared material for this specific burst
-        const material = new THREE.MeshBasicMaterial({ 
-            color: color,
-            transparent: true,
-            opacity: 1.0,
-            blending: THREE.AdditiveBlending // Makes the particles "glow" when overlapping
-        });
+        const count = 15;
+        const material = this.getMaterial(color);
 
-        for (let i = 0; i < particleCount; i++) {
+        for (let i = 0; i < count; i++) {
             const particle = new THREE.Mesh(this.particleGeo, material);
-            
-            // Set start position
             particle.position.copy(position);
             
-            // Randomized 3D Velocity (Explosion vector)
-            const force = 0.15;
+            // Random direction in a sphere
+            const phi = Math.random() * Math.PI * 2;
+            const theta = Math.random() * Math.PI;
+            const force = 0.1 + Math.random() * 0.15;
+
             particle.userData.velocity = new THREE.Vector3(
-                (Math.random() - 0.5) * force,
-                (Math.random() - 0.5) * force,
-                (Math.random() * force)
+                Math.sin(theta) * Math.cos(phi) * force,
+                Math.sin(theta) * Math.sin(phi) * force,
+                Math.cos(theta) * force
             );
             
-            // Physics attributes
-            particle.userData.friction = 0.94; // Slows down over time
-            particle.userData.life = 1.0;     // 1.0 to 0.0 scale
-
+            particle.userData.life = 1.0;
+            particle.userData.decay = 0.02 + Math.random() * 0.02;
+            
             this.scene.add(particle);
             this.particles.push(particle);
         }
     }
 
     /**
-     * Frame-by-frame update loop called by Engine3D
+     * Large Victory/Defeat Explosion
      */
-    update() {
-        // Iterate backwards to safely remove elements while looping
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            const p = this.particles[i];
-            
-            // 1. Apply Physics
-            p.position.add(p.userData.velocity);
-            p.userData.velocity.multiplyScalar(p.userData.friction); // Apply air resistance
-            
-            // 2. Update Life State
-            p.userData.life -= 0.025; // Speed of the fade-out
-            
-            // 3. Update Visuals
-            const s = p.userData.life;
-            p.scale.set(s, s, s);
-            p.material.opacity = s;
-
-            // 4. Garbage Collection
-            if (p.userData.life <= 0) {
-                this.removeParticle(p, i);
-            }
+    createExplosion(position, color = 0xffffff) {
+        for (let i = 0; i < 3; i++) {
+            setTimeout(() => this.createImpact(position, color), i * 150);
         }
     }
 
     /**
-     * Cleanly removes a particle from the scene and memory
+     * Frame-by-frame update (Called by Engine3D)
      */
-    removeParticle(particle, index) {
-        this.scene.remove(particle);
-        
-        // Note: We don't dispose the material here because it might be shared 
-        // by other particles in the same burst. Three.js handles basic cleanup.
-        this.particles.splice(index, 1);
+    update() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            
+            // Physics: Velocity + subtle gravity
+            p.position.add(p.userData.velocity);
+            p.userData.velocity.y -= 0.002; // Gravity
+            p.userData.velocity.multiplyScalar(0.96); // Air friction
+
+            // Visuals: Fade and Scale
+            p.userData.life -= p.userData.decay;
+            p.scale.setScalar(p.userData.life);
+            
+            // Note: Material opacity is shared in the pool, 
+            // so we don't change p.material.opacity. 
+            // Instead, we use scale to simulate the fade out.
+
+            if (p.userData.life <= 0) {
+                this.scene.remove(p);
+                this.particles.splice(i, 1);
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 /**
- * ALCHEMY CLASH: AI MANAGER (THE RIVAL)
- * Handles automated decision-making and card deployment for the opponent.
+ * ALCHEMY CLASH: AAA AI MANAGER (THE RIVAL)
+ * Orchestrates tactical decision-making and cinematic card deployment.
  */
 
 import { CARD_DATABASE } from './CardData.js';
@@ -11,89 +11,142 @@ export class AIManager {
         this.factory = factory;
         this.isThinking = false;
         
-        // High-Tier Rival Deck (Mixed Elements)
+        // Competitive Rival Deck
         this.deck = [
             'FIRE_DRAGON', 'WATER_SPIRIT', 'EARTH_GOLEM', 
-            'WIND_REAPER', 'FIRE_DRAGON', 'WATER_SPIRIT'
+            'WIND_REAPER', 'EMERALD_TITAN', 'SHADOW_ASSASSIN',
+            'VOID_MAGE', 'FIRE_DRAGON', 'EARTH_GOLEM'
         ];
+        
+        this.hand = [];
+        this.initialDraw();
     }
 
+    initialDraw() {
+        // AI starts with a hand of 3 cards
+        for (let i = 0; i < 3; i++) {
+            this.drawCard();
+        }
+    }
+
+    drawCard() {
+        if (this.deck.length > 0) {
+            const card = this.deck.splice(Math.floor(Math.random() * this.deck.length), 1)[0];
+            this.hand.push(card);
+        }
+    }
 
     /**
-     * Decides which card to play and where. 
-     * Called by DuelManager during the processTurn sequence.
+     * Executes the AI's turn logic. Returns an array of cards played.
      */
     async playTurn() {
-        if (this.isThinking) return null;
+        if (this.isThinking) return [];
         this.isThinking = true;
 
-        // 1. "Human-Like" Thinking Delay (1.2 to 2 seconds)
-        const delay = 1200 + Math.random() * 800;
+        // Draw for the new turn
+        this.drawCard();
+
+        // 1. "Thinking" Simulation
+        const delay = 1000 + Math.random() * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
 
-        const turnEnergy = this.duel.currentTurn;
+        let remainingEnergy = this.duel.currentTurn;
+        const cardsToPlay = [];
 
+        // 2. Multi-Card Play Logic (Spend energy efficiently)
+        let possiblePlays = this.hand.filter(key => CARD_DATABASE[key].cost <= remainingEnergy);
+
+        while (possiblePlays.length > 0) {
+            // Pick a card (Heuristic: Prefer higher cost/power cards first)
+            possiblePlays.sort((a, b) => CARD_DATABASE[b].cost - CARD_DATABASE[a].cost);
+            const cardKey = possiblePlays[0];
+            
+            // Choose the most tactical lane
+            const targetLane = this.calculateBestLane(cardKey);
+            
+            if (targetLane && targetLane.userData.eCards < 4) {
+                const cardEntity = this.deployCard(cardKey, targetLane);
+                cardsToPlay.push(cardEntity);
+                
+                // Deduct energy and update hand
+                remainingEnergy -= CARD_DATABASE[cardKey].cost;
+                this.hand.splice(this.hand.indexOf(cardKey), 1);
+                
+                // Re-scan for more playable cards with remaining energy
+                possiblePlays = this.hand.filter(key => CARD_DATABASE[key].cost <= remainingEnergy);
+            } else {
+                break; // No valid lanes left
+            }
+        }
+
+        this.isThinking = false;
+        return cardsToPlay;
+    }
+
+    /**
+     * TACTICAL ENGINE: Evaluates lane priority
+     */
+    calculateBestLane(cardKey) {
+        const cardData = CARD_DATABASE[cardKey];
+        const lanes = this.duel.lanes;
+
+        // Scoring lanes based on priority
+        const laneScores = lanes.map(lane => {
+            let score = 0;
+            const diff = lane.userData.pPower - lane.userData.ePower;
+
+            // Priority 1: Bolster lanes where we are slightly losing (-1 to -4 diff)
+            if (diff > 0 && diff <= 4) score += 10;
+            
+            // Priority 2: Don't over-commit to lanes we are already crushing
+            if (diff < -5) score -= 5;
+
+            // Priority 3: Element Synergy (Future Expansion Hook)
+            if (cardData.element === 'FIRE' && diff > 2) score += 2;
+
+            // Avoid full lanes
+            if (lane.userData.eCards >= 4) score = -100;
+
+            return { lane, score };
+        });
+
+        // Sort by score and return the best
+        laneScores.sort((a, b) => b.score - a.score);
+        return laneScores[0].lane;
+    }
+
+    /**
+     * Cinematic deployment of 3D card
+     */
+    deployCard(cardKey, targetLane) {
+        // Spawn from the top "Off-screen"
+        const spawnX = targetLane.position.x + (Math.random() - 0.5);
+        const card = this.factory.createCard(cardKey, spawnX, 12, 'ENEMY');
         
-        // 1. Filter deck for cards the AI can actually afford
-        const affordableIndices = this.deck.reduce((acc, key, idx) => {
-            if (CARD_DATABASE[key].cost <= turnEnergy) acc.push(idx);
-            return acc;
-        }, []);
-
-        if (affordableIndices.length === 0) return null;
-
-        // 2. Pick a card and remove it from deck
-        const randomIndex = affordableIndices[Math.floor(Math.random() * affordableIndices.length)];
-        const cardKey = this.deck.splice(randomIndex, 1)[0];
-
-        // 3. Strategic Lane Selection
-        // The AI looks for lanes where it is currently losing or tied
-        const targetLane = this.selectBestLane();
-
-        // 4. Create the 3D Entity
-        // Spawn far above the board (y=15) so it flies in from "the top"
-        const card = this.factory.createCard(cardKey, targetLane.position.x, 15, 'ENEMY');
-        
-        // AAA Setup: Start face-down (Fog of War)
+        // AI cards are face-down (Fog of War)
         card.rotation.y = Math.PI;
         card.userData.targetLane = targetLane;
 
-        // 5. Deploy Animation
-        // The AI "slams" the card into the enemy side of the lane (y offset +1.2)
-        const yOffset = 1.2 - (targetLane.userData.eCards * 0.4);
-        
-        // 5. Cinematic "Slam" Animation
+        // Position in the lane stack
+        const yOffset = 1.2 - (targetLane.userData.eCards * 0.45);
+        targetLane.userData.eCards++;
+
+        // Slam Animation
         gsap.to(card.position, { 
+            x: targetLane.position.x,
             y: targetLane.position.y + yOffset, 
             z: 0.1, 
-            duration: 0.6, 
-            ease: "bounce.out",
-            onComplete: () => {
-                // Trigger a small dust cloud or impact when AI plays
-                if (this.duel.vfx) this.duel.vfx.createImpact(card.position, 0x444444);
-                if (this.duel.audio) this.duel.audio.play('SNAP', 0.4);
-                this.isThinking = false;
-            }
+            duration: 0.7, 
+            ease: "power3.out" 
+        });
+
+        // Add a slight "wobble" on impact
+        gsap.to(card.rotation, {
+            z: (Math.random() - 0.5) * 0.1,
+            duration: 0.5,
+            delay: 0.2
         });
 
         return card;
-    }
-
-
-    /**
-     * Simple tactical logic: Try to bolster lanes that are close or being lost.
-     */
-    selectBestLane() {
-        const lanes = this.duel.lanes;
-        
-        // Find a lane where the player is currently winning
-        const strugglingLanes = lanes.filter(l => l.userData.pPower >= l.userData.ePower);
-        
-        if (strugglingLanes.length > 0) {
-            return strugglingLanes[Math.floor(Math.random() * strugglingLanes.length)];
-        }
-        
-        // Otherwise, pick a random lane
-        return lanes[Math.floor(Math.random() * lanes.length)];
     }
 }

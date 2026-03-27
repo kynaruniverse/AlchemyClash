@@ -1,6 +1,6 @@
 /**
- * ALCHEMY CLASH: ABILITY MANAGER
- * Handles logic for special card effects (Buffs, Debuffs, and Lane manipulation).
+ * ALCHEMY CLASH: AAA ABILITY MANAGER
+ * Orchestrates card effects, lane manipulation, and cinematic power shifts.
  */
 
 export class AbilityManager {
@@ -9,14 +9,14 @@ export class AbilityManager {
     }
 
     /**
-     * Triggers a card's unique ability based on its data
-     * @param {Object} card - The 3D Mesh of the card being revealed
+     * Triggers a card's unique ability.
+     * Called by DuelManager immediately after the card reveal animation.
      */
     trigger(card) {
         const ability = card.userData.data.ability;
         if (!ability) return;
 
-        console.log(`Triggering Ability: ${ability.type} for ${card.userData.data.name}`);
+        console.log(`AbilityManager: Activating ${ability.type} for ${card.userData.data.name}`);
 
         switch (ability.type) {
             case 'BOOST_LANE':
@@ -31,37 +31,53 @@ export class AbilityManager {
             case 'SPY':
                 this.spy(card);
                 break;
+            default:
+                console.warn(`AbilityManager: Unknown ability type ${ability.type}`);
         }
     }
 
-
-    // Effect: Adds power to all OTHER cards in this lane
+    /**
+     * Effect: Flat power boost to the current side of the lane.
+     */
     boostLane(card, value) {
         const lane = card.userData.targetLane;
+        const color = 0xffff00; // Gold/Yellow
+
         if (card.userData.owner === 'PLAYER') lane.userData.pPower += value;
         else lane.userData.ePower += value;
         
-        // AAA: Visual feedback for the boost
-        if (this.duel.vfx) this.duel.vfx.createImpact(card.position, 0xffff00);
-        gsap.to(lane.scale, { x: 1.1, z: 1.1, duration: 0.2, yoyo: true, repeat: 1 });
+        // AAA: Lane Pulse
+        if (this.duel.vfx) this.duel.vfx.createImpact(card.position, color);
+        gsap.to(lane.scale, { x: 1.05, y: 1.05, duration: 0.15, yoyo: true, repeat: 1 });
+        
+        this.syncGame();
     }
 
-
-    // Effect: Reduces the enemy's power in this lane
+    /**
+     * Effect: Reduces the opponent's power in this lane (Debuff).
+     */
     burnEnemy(card, value) {
         const lane = card.userData.targetLane;
+        const color = 0xff4400; // Fire Orange
+
         if (card.userData.owner === 'PLAYER') {
             lane.userData.ePower = Math.max(0, lane.userData.ePower - value);
         } else {
             lane.userData.pPower = Math.max(0, lane.userData.pPower - value);
         }
         
-        if (this.duel.vfx) this.duel.vfx.createImpact(lane.position, 0xff4400);
+        if (this.duel.vfx) this.duel.vfx.createImpact(lane.position, color);
+        this.syncGame();
     }
 
-    // Effect: Surge - Gains extra power if you are already winning this lane
+    /**
+     * Effect: Conditional Power - Only triggers if you are already winning.
+     */
     surge(card, value) {
         const lane = card.userData.targetLane;
+        const color = 0x00ff88; // Emerald Green
+        
+        // Check win state *before* adding surge power
         const isWinning = card.userData.owner === 'PLAYER' ? 
             (lane.userData.pPower > lane.userData.ePower) : 
             (lane.userData.ePower > lane.userData.pPower);
@@ -70,50 +86,62 @@ export class AbilityManager {
             if (card.userData.owner === 'PLAYER') lane.userData.pPower += value;
             else lane.userData.ePower += value;
             
-            if (this.duel.vfx) this.duel.vfx.createImpact(card.position, 0x00ff00);
-            console.log("SURGE ACTIVATED!");
+            if (this.duel.vfx) this.duel.vfx.createImpact(card.position, color);
+            if (this.duel.audio) this.duel.audio.play('SURGE', 0.5);
+            
+            this.syncGame();
         }
     }
     
-    // Effect: Moves to the OPPONENT'S side of the lane and gives them the power
-    // (Usually a low-power card that triggers a secondary negative effect)
+    /**
+     * Effect: The "Defector" - Card moves to the other side of the lane.
+     */
     spy(card) {
         const lane = card.userData.targetLane;
         const power = card.userData.data.atk;
+        const isPlayerOwned = card.userData.owner === 'PLAYER';
 
-        // 1. Subtract power from current owner
-        if (card.userData.owner === 'PLAYER') {
+        // 1. Remove from current side stats
+        if (isPlayerOwned) {
             lane.userData.pPower -= power;
+            lane.userData.pCards--;
             card.userData.owner = 'ENEMY';
             lane.userData.eCards++;
         } else {
             lane.userData.ePower -= power;
+            lane.userData.eCards--;
             card.userData.owner = 'PLAYER';
             lane.userData.pCards++;
         }
 
-        // 2. Add power to new owner
-        if (card.userData.owner === 'PLAYER') lane.userData.pPower += power;
-        else lane.userData.ePower += power;
-
-        // 3. AAA Animation: Slide the card across the board "equator"
-        const newZ = card.userData.owner === 'ENEMY' ? 0.1 : 0.1; // Maintain depth
-        const yOffset = card.userData.owner === 'ENEMY' ? 
+        // 2. AAA Animation: Slide across the "Equator"
+        const targetY = card.userData.owner === 'ENEMY' ? 
             (1.2 - (lane.userData.eCards * 0.4)) : 
             (-1.2 + (lane.userData.pCards * 0.4));
 
         gsap.to(card.position, {
-            y: lane.position.y + yOffset,
-            duration: 0.8,
-            ease: "expo.inOut",
+            y: lane.position.y + targetY,
+            duration: 1.2,
+            ease: "slow(0.7, 0.7, false)",
             onStart: () => {
-                if (this.duel.audio) this.duel.audio.play('SLIDE', 0.5);
+                if (this.duel.audio) this.duel.audio.play('SLIDE', 0.4);
             },
             onComplete: () => {
-                if (this.duel.vfx) this.duel.vfx.createImpact(card.position, 0xff00ff);
-                this.duel.updateLaneVisuals();
-                this.duel.ui.updateUI();
+                // 3. Add to new side stats after movement
+                if (card.userData.owner === 'PLAYER') lane.userData.pPower += power;
+                else lane.userData.ePower += power;
+
+                if (this.duel.vfx) this.duel.vfx.createImpact(card.position, 0xaa00ff);
+                this.syncGame();
             }
         });
+    }
+
+    /**
+     * Utility: Triggers UI and Lane Visual updates after a logic shift
+     */
+    syncGame() {
+        this.duel.updateLaneVisuals();
+        if (this.duel.ui) this.duel.ui.updateUI();
     }
 }

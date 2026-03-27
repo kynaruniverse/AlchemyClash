@@ -1,12 +1,20 @@
 /**
- * ALCHEMY CLASH: STATE-BASED CSS
- * Solves overlapping issues and defines the distinct new flow.
+ * ALCHEMY CLASH: AAA STATE-BASED STYLESHEET
+ * Inspired by Marvel Snap Visual Identity
  */
 
-/* 1. GLOBAL RESET & AAA BASE */
+/* 1. GLOBAL BASE */
+:root {
+    --cyan: #00ffff;
+    --magenta: #ff0055;
+    --gold: #ffcc00;
+    --bg-dark: #05050a;
+    --panel-glass: rgba(0, 0, 0, 0.75);
+}
+
 body, html {
     margin: 0; padding: 0; width: 100%; height: 100%;
-    background-color: #05050a;
+    background-color: var(--bg-dark);
     overflow: hidden;
     color: #ffffff;
     font-family: 'Orbitron', sans-serif;
@@ -14,297 +22,204 @@ body, html {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* 2. THE DYNAMIC CONTAINER */
+/* 2. THE UI ORCHESTRATOR */
 #ui-container {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: 1000; /* The UI is ALWAYS in front of the 3D world */
-    display: block;
-    pointer-events: none; /* Initially passive */
+    z-index: 1000;
+    pointer-events: none;
 }
 
-/* This is the key: Screens start in block but are passive.
-   When main.js adds 'active-screen', they become interactive. */
 .game-screen {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    display: none; /* Hidden completely by default */
+    display: none; 
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.5s ease, display 0.5s ease allow-discrete;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background-size: cover;
+    background-position: center;
 }
 
 .game-screen.active-screen {
-    display: flex; /* Active screen is visible */
+    display: flex;
     flex-direction: column;
     opacity: 1;
-    pointer-events: auto; /* All buttons are now clickable! */
+    pointer-events: auto;
 }
 
 /* 3. SCREEN 1: AAA SPLASH */
 #splash-screen {
     justify-content: center;
     align-items: center;
-    background: radial-gradient(circle, rgba(10, 10, 25, 1) 0%, rgba(5, 5, 10, 1) 100%);
+    background: radial-gradient(circle at center, #1a1a2e 0%, var(--bg-dark) 100%);
 }
 
 #splash-logo {
     text-align: center;
-    margin-bottom: 50px;
-    filter: drop-shadow(0 0 20px #00ffff);
+    margin-bottom: 60px;
+    animation: logoFloat 3s ease-in-out infinite;
 }
 
-#splash-title { font-size: 72px; font-weight: 900; background: linear-gradient(180deg, #00ffff 0%, #ff0055 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -2px; line-height: 0.9;}
-#splash-subtext { font-size: 14px; letter-spacing: 4px; color: #aaa; margin-top: 10px; }
+#splash-title { 
+    font-size: clamp(48px, 12vw, 82px); 
+    font-weight: 900; 
+    background: linear-gradient(180deg, #fff 30%, var(--cyan) 100%); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+    letter-spacing: -3px; 
+    line-height: 0.8;
+    filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.5));
+}
 
-/* The Marvel Snap "Glow Button" style */
 .aaa-button {
-    background: transparent;
-    border: 3px solid #00ffff;
-    color: #00ffff;
+    background: rgba(0, 255, 255, 0.1);
+    border: 3px solid var(--cyan);
+    color: var(--cyan);
     font-family: 'Orbitron';
-    font-size: 20px; font-weight: 900; letter-spacing: 2px;
-    padding: 18px 60px;
+    font-size: 18px; font-weight: 900; letter-spacing: 3px;
+    padding: 20px 50px;
     cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3), inset 0 0 10px rgba(0, 255, 255, 0.1);
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); /* Slanted Snap Style */
+    transition: all 0.2s ease;
 }
 
-.aaa-button:hover, .aaa-button:active {
-    transform: scale(1.05);
-    background: #00ffff;
-    color: #050510;
-    box-shadow: 0 0 40px #00ffff, inset 0 0 0 transparent;
-}
+.aaa-button:active { transform: scale(0.95); background: var(--cyan); color: #000; }
 
-/* 4. SCREEN 2: "SNAP" STYLE MAIN MENU */
+/* 4. SCREEN 2: MAIN MENU (SNAP HUD) */
 #menu-screen {
-    justify-content: space-between; /* Spreads elements like your share */
-    padding: 40px 0;
-    background: url('https://placehold.co/1080x1920/111/fff?text=MENU_BG_PLACEHOLDER') no-repeat center/cover;
+    justify-content: space-between;
+    padding: 50px 0 20px 0;
+    background: linear-gradient(rgba(5,5,10,0.8), rgba(5,5,10,0.8)), 
+                url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop');
 }
 
 #menu-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 30px;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 20px;
 }
 
-#menu-player {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
+#menu-player { display: flex; align-items: center; gap: 12px; }
 
 #player-avatar {
-    width: 60px; height: 60px;
-    border: 3px solid #00ffff;
-    border-radius: 50%;
-    background: url('https://placehold.co/100x100/333/fff?text=DRAGON') center/cover;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    width: 55px; height: 55px;
+    border: 3px solid var(--magenta);
+    border-radius: 12px; /* Square with rounded corners like Snap */
+    background: url('https://placehold.co/100x100/222/ff0055?text=AVATAR') center/cover;
+    box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
 }
 
-#player-level { font-size: 18px; color: #aaa; }
-#player-name { font-size: 24px; font-weight: 900; color: #fff; text-transform: uppercase;}
-
-#menu-resources {
-    display: flex; gap: 20px;
-}
+#player-name { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
 
 .resource-pill {
-    background: rgba(0, 0, 0, 0.6);
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 5px 15px;
-    font-size: 14px;
-    color: #00ffff;
-    display: flex; align-items: center; gap: 8px;
+    background: var(--panel-glass);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
 }
-
-.resource-pill.gold { color: #ffcc00; }
 
 #menu-center {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+    flex: 1; display: flex; flex-direction: column; 
+    justify-content: center; align-items: center;
 }
 
-/* This is where we will inject seasonal mission images, like in Marvel Snap */
 #seasonal-mission-banner {
-    width: 80%;
-    max-width: 400px;
-    height: 300px;
-    background: rgba(255, 0, 85, 0.1);
-    border: 2px solid #ff0055;
-    border-radius: 15px;
-    box-shadow: 0 0 40px rgba(255, 0, 85, 0.3);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: #ff0055;
-    font-size: clamp(24px, 6vw, 40px);
-    font-weight: 900;
-}
-
-#menu-bottom {
-    padding: 0 30px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-}
-
-#menu-subtext {
-    font-size: 12px;
-    color: #aaa;
-    letter-spacing: 5px;
-}
-
-/* The massive Marvel Snap 'PLAY' button */
-#play-btn-wrapper {
+    width: 85%; max-width: 400px;
+    height: 220px;
+    background: linear-gradient(135deg, #222 0%, #000 100%);
+    border: 2px solid var(--magenta);
+    border-radius: 10px;
     position: relative;
-    width: 100%;
+    overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+
+/* Diagonal stripe overlay for that Snap look */
+#seasonal-mission-banner::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,0,85,0.05) 10px, rgba(255,0,85,0.05) 20px);
+}
+
+#menu-bottom { width: 100%; align-items: center; gap: 15px; }
+
+#play-btn-wrapper {
+    width: 90%; max-width: 350px; position: relative;
 }
 
 .play-button {
-    width: 100%;
-    padding: 25px;
-    font-size: 32px;
-    font-weight: 900;
+    width: 100%; padding: 22px;
+    font-size: 36px; font-weight: 900;
     color: #fff;
-    background: linear-gradient(to bottom, #111 0%, #00ffff 50%, #111 100%);
-    border: none;
-    border-radius: 10px;
-    text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+    background: linear-gradient(to bottom, #222, #0066ff, #00ffff);
+    border: none; border-radius: 8px;
+    font-style: italic;
+    box-shadow: 0 8px 0 #003366, 0 15px 30px rgba(0,255,255,0.3);
     cursor: pointer;
-    transition: all 0.2s ease;
-    filter: drop-shadow(0 10px 0 rgba(0, 255, 255, 0.4));
 }
 
-.play-button:active {
-    filter: drop-shadow(0 2px 0 rgba(0, 255, 255, 0.4));
-    transform: translateY(8px);
-}
+.play-button:active { transform: translateY(6px); box-shadow: 0 2px 0 #003366; }
 
 #current-deck-label {
-    position: absolute;
-    top: -20px; left: 20px;
-    font-size: clamp(14px, 4vw, 18px);
-    color: #fff;
-    background: #ff0055;
-    padding: 5px 20px;
-    border-radius: 5px;
+    position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+    background: var(--magenta); padding: 4px 15px; font-size: 12px; font-weight: 900;
+    border-radius: 4px; z-index: 2;
 }
 
-#bottom-nav {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 2px solid rgba(0, 255, 255, 0.2);
-}
-
-.nav-item {
-    font-size: clamp(10px, 3vw, 14px);
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    cursor: pointer;
-}
-
-.nav-item.active-nav {
-    color: #00ffff;
-    text-shadow: 0 0 10px #00ffff;
-    font-weight: 900;
-}
-
-/* 5. DYNAMIC COMPONENT: DECK BUILDER INJECTION */
-/* When the Deck Builder is active, it will be injected into the UI-Container.
-   The specific styles for DeckBuilder.js (Card Grid, etc.) must remain in that file. */
-   
-/* 6. GAME WORLD HUD (Lives over Battle Screen) */
-#battle-screen {
-    justify-content: space-between;
-}
-
-#score-container {
-    display: flex; justify-content: center; gap: 40px;
-    margin-top: 10vh;
-}
-
-.lane-ui { display: flex; flex-direction: column; align-items: center; gap: 10vh; }
+/* 5. BATTLE HUD (Over 3D Canvas) */
+#battle-screen { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0; }
 
 .lane-score, .enemy-score {
-    width: 50px; height: 50px;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    border: 2px solid #fff;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: 24px;
-}
-
-.enemy-score { border-color: #ff0055; color: #ff0055; }
-.lane-score { border-color: #00ffff; color: #00ffff; }
-
-#announcer {
-    position: absolute;
-    top: 45%; width: 100%; text-align: center;
-    font-size: clamp(32px, 8vw, 64px);
-    font-weight: 900; letter-spacing: 8px;
-    text-shadow: 0 0 20px #00ffff;
-    opacity: 0;
-}
-
-#bottom-bar {
-    position: absolute; bottom: 30px;
-    width: 100%; display: flex; justify-content: space-between;
-    padding: 0 40px; box-sizing: border-box;
-}
-
-.mana-container { display: flex; flex-direction: column; align-items: center; }
-
-.mana-hex {
-    width: 75px; height: 75px;
-    background: rgba(0, 255, 255, 0.1);
-    border: 3px solid #00ffff;
+    width: 60px; height: 60px;
+    background: var(--panel-glass);
+    border: 3px solid var(--cyan);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 32px; font-weight: 900;
-    box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+    font-size: 28px; font-weight: 900;
+    text-shadow: 0 0 10px var(--cyan);
 }
 
-.mana-label { font-size: 10px; margin-top: 8px; letter-spacing: 3px; color: #00ffff; }
-
-#end-turn-btn {
-    pointer-events: auto;
-    padding: 20px 50px;
-    background: linear-gradient(180deg, #ff0055 0%, #aa0033 100%);
-    border: none; border-radius: 12px;
-    color: white; font-family: 'Orbitron'; font-weight: 900;
-    font-size: 20px; letter-spacing: 2px;
-    box-shadow: 0 6px 0 #660022;
-    cursor: pointer;
-    transition: all 0.1s;
+/* Add this to your style.css */
+.lane-score.winning {
+    box-shadow: 0 0 30px var(--cyan);
+    transform: scale(1.15);
+    background: rgba(0, 255, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-#end-turn-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #660022; }
+.enemy-score.winning {
+    box-shadow: 0 0 30px var(--magenta);
+    transform: scale(1.15);
+    background: rgba(255, 0, 85, 0.3);
+}
 
-/* 7. DYNAMIC COMPONENT: 3D GAME WORLD CONTAINER */
-/* When active, the 3D World must sit just behind the HUD */
+
+.enemy-score { border-color: var(--magenta); text-shadow: 0 0 10px var(--magenta); color: var(--magenta); }
+
+#bottom-bar {
+    position: absolute; bottom: 40px; width: 100%;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 30px; box-sizing: border-box;
+}
+
+.mana-hex {
+    width: 80px; height: 80px;
+    background: rgba(0, 255, 255, 0.15);
+    border: 4px solid var(--cyan);
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 34px; font-weight: 900;
+    filter: drop-shadow(0 0 15px var(--cyan));
+}
+
+/* 6. 3D CONTAINER */
 #game-container {
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: 1; /* Sits in background until Battle */
-    opacity: 0;
-    display: none;
-    pointer-events: none;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 1; pointer-events: none; opacity: 0;
+}
+
+/* ANIMATIONS */
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
 }
