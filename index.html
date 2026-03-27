@@ -2,13 +2,73 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Alchemy Clash PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#05050a">
+    <link rel="manifest" href="manifest.json">
+    
+    <title>Alchemy Clash | AAA 3D Card Battle</title>
+
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    
+    <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.150.1/build/three.module.js"
+        }
+    }
+    </script>
 </head>
 <body>
+
+    <div id="menu-layer">
+        <div class="menu-content">
+            <h1 id="game-title">ALCHEMY<br>CLASH</h1>
+            <div id="menu-subtext">MASTER THE ELEMENTS</div>
+            <button id="start-game-btn" class="glow-button">ENTER ARENA</button>
+        </div>
+    </div>
+
+    <div id="ui-layer" style="display: none; opacity: 0;">
+        
+        <div id="score-container">
+            <div class="lane-ui">
+                <div class="enemy-score" id="enemy-0" title="Opponent Power">0</div>
+                <div class="lane-score" id="score-0" title="Your Power">0</div>
+            </div>
+            <div class="lane-ui">
+                <div class="enemy-score" id="enemy-1" title="Opponent Power">0</div>
+                <div class="lane-score" id="score-1" title="Your Power">0</div>
+            </div>
+            <div class="lane-ui">
+                <div class="enemy-score" id="enemy-2" title="Opponent Power">0</div>
+                <div class="lane-score" id="score-2" title="Your Power">0</div>
+            </div>
+        </div>
+
+        <div id="announcer">ROUND 1</div>
+
+        <div id="bottom-bar">
+            <div class="mana-container">
+                <div class="mana-hex">
+                    <span id="mana-value">1</span>
+                </div>
+                <div class="mana-label">ENERGY</div>
+            </div>
+            
+            <button id="end-turn-btn">END TURN</button>
+        </div>
+    </div>
+
     <div id="game-container"></div>
+
     <script type="module" src="main.js"></script>
+
 </body>
 </html>
