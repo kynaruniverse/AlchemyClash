@@ -33,24 +33,34 @@ export class DeckBuilder {
             const card = CARD_DATABASE[key];
             const item = document.createElement('div');
             item.className = 'builder-card';
+            
+            // Fix: Ensure 6-digit hex color for CSS
+            const hexColor = card.color.toString(16).padStart(6, '0');
+            
             item.innerHTML = `
-                <div class="card-art" style="border-color: #${card.color.toString(16)}">
+                <div class="card-art" style="border-color: #${hexColor}">
                     <strong>${card.name}</strong><br>
                     <span>ATK: ${card.atk} | COST: ${card.cost}</span>
+                    <p style="font-size: 9px; color: #888; margin-top: 5px;">${card.desc || ''}</p>
                 </div>
             `;
             item.onclick = () => this.toggleCard(key, item);
             grid.appendChild(item);
         });
 
-        this.container.querySelector('#confirm-deck-btn').onclick = () => {
+        const confirmBtn = this.container.querySelector('#confirm-deck-btn');
+        confirmBtn.className = 'glow-button'; // Apply AAA styling
+        confirmBtn.onclick = () => {
+
             this.container.style.display = 'none';
             this.onComplete(this.selectedCards);
         };
     }
 
     toggleCard(key, element) {
-        if (this.selectedCards.includes(key)) {
+        const isSelected = this.selectedCards.includes(key);
+
+        if (isSelected) {
             this.selectedCards = this.selectedCards.filter(k => k !== key);
             element.classList.remove('selected');
         } else if (this.selectedCards.length < 4) {
@@ -58,7 +68,10 @@ export class DeckBuilder {
             element.classList.add('selected');
         }
 
-        const btn = document.getElementById('confirm-deck-btn');
-        btn.disabled = this.selectedCards.length !== 4;
+        // Visual feedback for the button
+        const btn = this.container.querySelector('#confirm-deck-btn');
+        const count = this.selectedCards.length;
+        btn.disabled = count !== 4;
+        btn.innerText = count === 4 ? "LOCK DECK" : `PICK ${4 - count} MORE`;
     }
 }
