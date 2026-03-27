@@ -6,17 +6,25 @@
     <meta name="theme-color" content="#05050a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
+    <meta name="description" content="Alchemy Clash: AAA 3D Card Battle Game. Assemble decks, deploy cards, and dominate lanes in cinematic battles.">
+
     <title>Alchemy Clash | AAA 3D Card Battle</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
+    <!-- Main Styles -->
     <link rel="stylesheet" href="style.css">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    
+    <!-- GSAP -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Three.js Module Support -->
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
     {
@@ -29,11 +37,26 @@
 </head>
 <body>
 
-    <div id="ui-container"></div>
+    <!-- Preloader -->
+    <div id="preloader" style="position:fixed;inset:0;background:#05050a;display:flex;align-items:center;justify-content:center;color:#00ffff;font-family:'Orbitron', monospace;font-size:24px;z-index:9999;">
+        Loading Alchemy Clash...
+    </div>
 
-    <div id="game-container"></div>
+    <!-- UI Container -->
+    <div id="ui-container" aria-label="Game UI"></div>
 
-    <script type="module" src="main.js"></script>
+    <!-- 3D Game Scene Container -->
+    <div id="game-container" aria-label="3D Card Battle Arena"></div>
 
+    <!-- Main Module -->
+    <script type="module" defer src="main.js"></script>
+
+    <script>
+        // Simple preloader removal
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            if(preloader) preloader.style.display = 'none';
+        });
+    </script>
 </body>
 </html>
