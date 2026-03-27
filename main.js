@@ -12,6 +12,8 @@ import { Interface } from './src/ui/Interface.js';
 import { AIManager } from './src/game/AIManager.js';
 import { Environment } from './src/core/Environment.js';
 import { DeckBuilder } from './src/ui/DeckBuilder.js';
+import { AudioManager } from './src/core/AudioManager.js';
+
 
 class GameBootstrapper {
     constructor() {
@@ -67,15 +69,25 @@ class GameBootstrapper {
     openDeckBuilder() {
         // 1. Visual Feedback
         const menu = document.getElementById('menu-layer');
+        const uiLayer = document.getElementById('ui-layer');
+        
+        // Ensure UI layer is ready to receive the deck builder
+        uiLayer.style.display = 'block'; 
+
         gsap.to(menu, { opacity: 0, duration: 0.5, onComplete: () => {
             menu.style.display = 'none';
             
             // 2. Launch Deck Builder
-            new DeckBuilder((selectedDeck) => {
-                this.startBattle(selectedDeck);
-            });
+            try {
+                new DeckBuilder((selectedDeck) => {
+                    this.startBattle(selectedDeck);
+                });
+            } catch (e) {
+                console.error("DeckBuilder failed to initialize:", e);
+            }
         }});
     }
+
 
 
     /**
