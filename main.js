@@ -20,9 +20,11 @@ class GameBootstrapper {
         this.world = new Environment(this.app.scene);
         this.vfx = new VFXManager(this.app.scene);
         this.app.setVFX(this.vfx);
+        this.audio = new AudioManager();
 
         // 2. Initialize Game Logic
-        this.duel = new DuelManager(this.app.scene, this.vfx);
+        this.duel = new DuelManager(this.app.scene, this.vfx, this.audio);
+
         this.factory = new CardFactory(this.app.scene);
         this.ai = new AIManager(this.duel, this.factory);
         this.ui = new Interface(this.duel);

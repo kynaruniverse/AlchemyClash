@@ -63,7 +63,15 @@ export class InputSystem {
         );
         
         if (cardHit) {
+            // Show details on click/tap
+            this.duelMgr.ui.showCardDetail(cardHit.object.userData.data);
+            
+            // Audio: Drag Whoosh
+            if (this.duelMgr.audio) this.duelMgr.audio.play('DRAG', 0.3);
+
             this.selectedCard = cardHit.object;
+
+
             this.isDragging = true;
             this.startPos.copy(this.selectedCard.position);
             

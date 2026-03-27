@@ -8,8 +8,15 @@ export class Interface {
         this.duel = duel;
         this.endTurnBtn = document.getElementById('end-turn-btn');
         this.announcerEl = document.getElementById('announcer');
+        
+        // Detail Overlay Elements
+        this.detailOverlay = document.createElement('div');
+        this.detailOverlay.id = 'card-detail-popup';
+        document.body.appendChild(this.detailOverlay);
+
         this.init();
     }
+
 
     init() {
         // Bind the End Turn button to the logic engine
@@ -99,4 +106,36 @@ export class Interface {
     pulseElement(el) {
         gsap.fromTo(el, { scale: 1.3 }, { scale: 1, duration: 0.4, ease: "elastic.out(1, 0.3)" });
     }
+
+    /**
+     * Displays a full-screen cinematic preview of a card's stats and lore
+     */
+    showCardDetail(cardData) {
+        this.detailOverlay.innerHTML = `
+            <div class="detail-content">
+                <div class="detail-header">
+                    <span class="detail-name">${cardData.name}</span>
+                    <span class="detail-cost">${cardData.cost}⚡</span>
+                </div>
+                <div class="detail-body">
+                    <p class="detail-desc">${cardData.desc || "A mysterious alchemical force."}</p>
+                    <div class="detail-stats">POWER: ${cardData.atk}</div>
+                </div>
+            </div>
+        `;
+
+        this.detailOverlay.style.display = 'flex';
+        gsap.fromTo(this.detailOverlay, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.3 });
+
+        // Auto-hide after 2 seconds or on click
+        const hide = () => {
+            gsap.to(this.detailOverlay, { opacity: 0, duration: 0.2, onComplete: () => {
+                this.detailOverlay.style.display = 'none';
+            }});
+            this.detailOverlay.removeEventListener('click', hide);
+        };
+        this.detailOverlay.addEventListener('click', hide);
+        setTimeout(hide, 2500);
+    }
 }
+

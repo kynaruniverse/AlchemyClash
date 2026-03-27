@@ -6,9 +6,11 @@
 import * as THREE from 'three';
 
 export class DuelManager {
-    constructor(scene, vfx) {
+    constructor(scene, vfx, audio) {
         this.scene = scene;
         this.vfx = vfx;
+        this.audio = audio;
+
         this.lanes = [];
         
         // Game State
@@ -24,8 +26,12 @@ export class DuelManager {
         // Turn management
         this.playedCards = []; // Queue for the current turn's reveal
         
+        // Systems
+        this.abilities = new AbilityManager(this);
+
         this.createLanes();
     }
+
 
     createLanes() {
         // High-fidelity Lane visuals
@@ -99,7 +105,11 @@ export class DuelManager {
                 });
                 
                 gsap.to(card.rotation, { y: Math.PI, duration: 0.4 }); 
+                
+                // Audio: Snap Slam
+                if (this.audio) this.audio.play('SNAP', 0.6);
             }
+
         });
         
         return snapped;
@@ -170,11 +180,22 @@ export class DuelManager {
                     
                     // Trigger VFX and Lane Glow
                     this.vfx.createImpact(card.position, card.userData.data.color);
-                    gsap.to(lane.material, { opacity: 0.4, duration: 0.2, yoyo: true, repeat: 1 });
                     
-                    this.abilities.trigger(card);
+                    // Audio: Reveal and Impact
+                    if (this.audio) {
+                        this.audio.play('REVEAL', 0.4);
+                        setTimeout(() => this.audio.play('IMPACT', 0.5), 100);
+                    }
+
+                    gsap.to(lane.material, { opacity: 0.4, duration: 0.2, yoyo: true, repeat: 1 });
+
+                    // Execute Card Ability
+                    if (this.abilities) {
+                        this.abilities.trigger(card);
+                    }
                     
                     this.ui.updateUI();
+
                     card.userData.revealed = true;
                     
                     // Small delay between multiple reveals for dramatic effect
