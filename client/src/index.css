@@ -8,13 +8,24 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Google Fonts import */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
+/* ===== Theme Variables ===== */
 @theme inline {
+  /* Radius */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Fonts */
+  --font-cinzel: "Cinzel", serif;
+  --font-lora: "Lora", serif;
+
+  /* Standard shadcn colors (mapped to our custom variables) */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -47,6 +58,7 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
   /* Alchemy custom tokens */
   --color-parchment: var(--parchment);
   --color-parchment-dark: var(--parchment-dark);
@@ -59,9 +71,11 @@
   --color-stone: var(--stone);
 }
 
+/* ===== Root Variables ===== */
 :root {
   --radius: 0.5rem;
-  /* Alchemy palette */
+
+  /* Alchemy palette (light mode) */
   --parchment: oklch(0.93 0.04 80);
   --parchment-dark: oklch(0.82 0.05 75);
   --ink: oklch(0.22 0.03 60);
@@ -72,7 +86,7 @@
   --violet-magic: oklch(0.55 0.12 295);
   --stone: oklch(0.55 0.02 75);
 
-  /* Semantic tokens */
+  /* Semantic tokens (light) */
   --background: oklch(0.91 0.04 78);
   --foreground: oklch(0.20 0.03 60);
   --card: oklch(0.94 0.04 80);
@@ -107,17 +121,65 @@
   --sidebar-ring: oklch(0.62 0.12 75);
 }
 
+/* Dark mode overrides */
+.dark {
+  --parchment: oklch(0.18 0.02 60);
+  --parchment-dark: oklch(0.12 0.01 55);
+  --ink: oklch(0.85 0.03 70);
+  --gold: oklch(0.72 0.12 75);
+  --gold-light: oklch(0.80 0.10 80);
+  --moss: oklch(0.55 0.08 145);
+  --clay: oklch(0.58 0.12 35);
+  --violet-magic: oklch(0.65 0.12 295);
+  --stone: oklch(0.65 0.02 75);
+
+  /* Semantic tokens (dark) */
+  --background: oklch(0.12 0.02 60);
+  --foreground: oklch(0.85 0.03 70);
+  --card: oklch(0.16 0.02 62);
+  --card-foreground: oklch(0.85 0.03 70);
+  --popover: oklch(0.16 0.02 62);
+  --popover-foreground: oklch(0.85 0.03 70);
+  --primary: oklch(0.72 0.12 75);
+  --primary-foreground: oklch(0.12 0.02 60);
+  --secondary: oklch(0.28 0.04 65);
+  --secondary-foreground: oklch(0.85 0.03 70);
+  --muted: oklch(0.28 0.04 65);
+  --muted-foreground: oklch(0.65 0.03 70);
+  --accent: oklch(0.28 0.04 65);
+  --accent-foreground: oklch(0.85 0.03 70);
+  --destructive: oklch(0.58 0.12 35);
+  --destructive-foreground: oklch(0.85 0.03 70);
+  --border: oklch(0.28 0.04 65);
+  --input: oklch(0.28 0.04 65);
+  --ring: oklch(0.72 0.12 75);
+  --sidebar: oklch(0.16 0.02 62);
+  --sidebar-foreground: oklch(0.85 0.03 70);
+  --sidebar-primary: oklch(0.72 0.12 75);
+  --sidebar-primary-foreground: oklch(0.12 0.02 60);
+  --sidebar-accent: oklch(0.28 0.04 65);
+  --sidebar-accent-foreground: oklch(0.85 0.03 70);
+  --sidebar-border: oklch(0.28 0.04 65);
+  --sidebar-ring: oklch(0.72 0.12 75);
+}
+
+/* ===== Base Layer ===== */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
-    font-family: 'Lora', Georgia, serif;
+    font-family: "Lora", Georgia, serif;
   }
-  h1, h2, h3 {
-    font-family: 'Cinzel', 'Times New Roman', serif;
+
+  h1,
+  h2,
+  h3 {
+    font-family: "Cinzel", "Times New Roman", serif;
   }
+
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -131,7 +193,9 @@
   }
 }
 
+/* ===== Component Layer ===== */
 @layer components {
+  /* Container */
   .container {
     width: 100%;
     margin-left: auto;
@@ -139,16 +203,14 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  .flex {
-    min-height: 0;
-    min-width: 0;
-  }
+
   @media (min-width: 640px) {
     .container {
       padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
+
   @media (min-width: 1024px) {
     .container {
       padding-left: 2rem;
@@ -157,11 +219,16 @@
     }
   }
 
-  /* ── Alchemy-specific components ── */
+  /* Utility override for flex children */
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  /* Parchment surface with noise (for cards, dialogs, etc.) */
   .parchment-surface {
     background-color: oklch(0.93 0.04 80);
-    background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
     box-shadow: inset 0 0 60px rgba(120, 80, 20, 0.15);
   }
 
@@ -171,69 +238,182 @@
   }
 
   .gold-glow {
-    box-shadow: 0 0 12px oklch(0.72 0.12 75 / 0.6), 0 0 24px oklch(0.72 0.12 75 / 0.3);
+    box-shadow:
+      0 0 12px oklch(0.72 0.12 75 / 0.6),
+      0 0 24px oklch(0.72 0.12 75 / 0.3);
   }
 
+  /* Element tokens */
   .element-token {
     @apply relative flex items-center justify-center rounded-full cursor-grab active:cursor-grabbing select-none;
-    font-family: 'Cinzel', serif;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    font-family: "Cinzel", serif;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
   }
 
   .element-token:hover {
     transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.25), 0 0 12px oklch(0.72 0.12 75 / 0.4);
+    box-shadow:
+      0 6px 20px rgba(0, 0, 0, 0.25),
+      0 0 12px oklch(0.72 0.12 75 / 0.4);
   }
 
   .battle-card {
-    font-family: 'Cinzel', serif;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-family: "Cinzel", serif;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
   }
 
   .battle-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
 
-  /* Floating animation for idle elements */
+  /* ── Keyframes ── */
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-4px); }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
   }
 
   @keyframes ink-bloom {
-    0% { opacity: 0; transform: scale(0.3); filter: blur(8px); }
-    60% { opacity: 1; transform: scale(1.1); filter: blur(0px); }
-    100% { opacity: 1; transform: scale(1); filter: blur(0px); }
+    0% {
+      opacity: 0;
+      transform: scale(0.3);
+      filter: blur(8px);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.1);
+      filter: blur(0px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(0px);
+    }
   }
 
   @keyframes gold-pulse {
-    0%, 100% { box-shadow: 0 0 8px oklch(0.72 0.12 75 / 0.4); }
-    50% { box-shadow: 0 0 20px oklch(0.72 0.12 75 / 0.8), 0 0 40px oklch(0.72 0.12 75 / 0.4); }
+    0%,
+    100% {
+      box-shadow: 0 0 8px oklch(0.72 0.12 75 / 0.4);
+    }
+    50% {
+      box-shadow:
+        0 0 20px oklch(0.72 0.12 75 / 0.8),
+        0 0 40px oklch(0.72 0.12 75 / 0.4);
+    }
   }
 
   @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-6px);
+    }
+    40% {
+      transform: translateX(6px);
+    }
+    60% {
+      transform: translateX(-4px);
+    }
+    80% {
+      transform: translateX(4px);
+    }
   }
 
   @keyframes card-reveal {
-    0% { transform: rotateY(90deg) scale(0.8); opacity: 0; }
-    100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+    0% {
+      transform: rotateY(90deg) scale(0.8);
+      opacity: 0;
+    }
+    100% {
+      transform: rotateY(0deg) scale(1);
+      opacity: 1;
+    }
   }
 
   @keyframes dust-float {
-    0% { opacity: 0; transform: translateY(0) translateX(0) scale(0); }
-    50% { opacity: 0.7; }
-    100% { opacity: 0; transform: translateY(-30px) translateX(10px) scale(1.5); }
+    0% {
+      opacity: 0;
+      transform: translateY(0) translateX(0) scale(0);
+    }
+    50% {
+      opacity: 0.7;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-30px) translateX(10px) scale(1.5);
+    }
   }
 
-  .animate-float { animation: float 3s ease-in-out infinite; }
-  .animate-ink-bloom { animation: ink-bloom 0.6s ease-out forwards; }
-  .animate-gold-pulse { animation: gold-pulse 2s ease-in-out infinite; }
-  .animate-shake { animation: shake 0.4s ease-in-out; }
-  .animate-card-reveal { animation: card-reveal 0.35s ease-out forwards; }
+  @keyframes caret-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Collapsible animations (used by collapsible component) */
+  @keyframes collapsible-up {
+    from {
+      opacity: 1;
+      height: var(--radix-collapsible-content-height);
+    }
+    to {
+      opacity: 0;
+      height: 0;
+    }
+  }
+
+  @keyframes collapsible-down {
+    from {
+      opacity: 0;
+      height: 0;
+    }
+    to {
+      opacity: 1;
+      height: var(--radix-collapsible-content-height);
+    }
+  }
+
+  .animate-collapsible-up {
+    animation: collapsible-up 0.2s ease-out;
+  }
+
+  .animate-collapsible-down {
+    animation: collapsible-down 0.2s ease-out;
+  }
+
+  /* ── Animation Utilities ── */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-ink-bloom {
+    animation: ink-bloom 0.6s ease-out forwards;
+  }
+
+  .animate-gold-pulse {
+    animation: gold-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-shake {
+    animation: shake 0.4s ease-in-out;
+  }
+
+  .animate-card-reveal {
+    animation: card-reveal 0.35s ease-out forwards;
+  }
+
+  .animate-caret-blink {
+    animation: caret-blink 1s step-end infinite;
+  }
 }

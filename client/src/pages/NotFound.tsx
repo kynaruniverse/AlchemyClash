@@ -1,49 +1,130 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Home } from "lucide-react";
+// ============================================================
+// ALCHEMY CLASH — 404 Not Found Screen (REBORN)
+// Bold, game-first, high clarity UI
+// ============================================================
+
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { useLocation } from "wouter";
+import { Button } from "@/components/ui/button";
+import { AlertCircle, Home } from "lucide-react";
 
-export default function NotFound() {
-  const [, setLocation] = useLocation();
+interface DustParticleProps {
+  style: React.CSSProperties;
+}
 
-  const handleGoHome = () => {
-    setLocation("/");
-  };
+function DustParticle({ style }: DustParticleProps): JSX.Element {
+  const width = 3 + Math.random() * 2;
+  const height = 3 + Math.random() * 2;
+  const animationDuration = 3 + Math.random() * 4;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardContent className="pt-8 pb-8 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse" />
-              <AlertCircle className="relative h-16 w-16 text-red-500" />
-            </div>
-          </div>
+    <div
+      className="absolute rounded-full pointer-events-none"
+      style={{
+        width,
+        height,
+        background: "rgba(212, 168, 67, 0.6)",
+        animation: `dust-float ${animationDuration}s ease-out infinite`,
+        animationDelay: `${Math.random() * 5}s`,
+        ...style,
+      }}
+    />
+  );
+}
 
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
+export default function NotFound(): JSX.Element {
+  const [, setLocation] = useLocation();
+  const [particles] = useState(() =>
+    Array.from({ length: 25 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 80}%`,
+    }))
+  );
 
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            Page Not Found
-          </h2>
+  const handleGoHome = () => setLocation("/");
 
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Sorry, the page you are looking for doesn't exist.
-            <br />
-            It may have been moved or deleted.
-          </p>
+  return (
+    <div className="relative min-h-screen flex items-center justify-center bg-black overflow-hidden">
+      {/* Particles */}
+      {particles.map((particle) => (
+        <DustParticle key={particle.id} style={{ left: particle.left, top: particle.top }} />
+      ))}
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              onClick={handleGoHome}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/60" />
+
+      {/* CONTENT */}
+      <div className="relative z-10 flex flex-col items-center px-6 text-center">
+        {/* Animated Alert Icon */}
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="mb-6 relative"
+          aria-label="Error icon"
+        >
+          <div className="absolute inset-0 bg-red-600 rounded-full opacity-30 animate-pulse blur-sm" />
+          <AlertCircle className="relative w-16 h-16 text-red-400" aria-hidden="true" />
+        </motion.div>
+
+        {/* 404 Text */}
+        <motion.h1
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="text-6xl md:text-7xl font-bold text-yellow-400 mb-2"
+          style={{ fontFamily: "'Cinzel Decorative', serif" }}
+        >
+          404
+        </motion.h1>
+
+        <motion.h2
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="text-2xl md:text-3xl font-semibold text-white/80 mb-4"
+        >
+          Page Not Found
+        </motion.h2>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="text-white/60 mb-8 leading-relaxed max-w-md"
+        >
+          The page you are looking for doesn’t exist.
+          <br />
+          It may have been moved or deleted, or you typed the URL wrong.
+        </motion.p>
+
+        {/* Go Home Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8, duration: 0.6 }}
+        >
+          <Button
+            onClick={handleGoHome}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold bg-yellow-500 hover:bg-yellow-600 text-black shadow-lg transition-all duration-200"
+          >
+            <Home className="w-5 h-5" />
+            Go Home
+          </Button>
+        </motion.div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.4 }}
+          transition={{ delay: 1.2, duration: 1 }}
+          className="mt-12 text-xs text-yellow-300/40"
+        >
+          Alchemy Clash • Prototype
+        </motion.div>
+      </div>
     </div>
   );
 }

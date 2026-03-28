@@ -1,6 +1,10 @@
 import { useRef } from "react";
 import { usePersistFn } from "./usePersistFn";
 
+// ----------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------
+
 export interface UseCompositionReturn<
   T extends HTMLInputElement | HTMLTextAreaElement,
 > {
@@ -18,8 +22,20 @@ export interface UseCompositionOptions<
   onCompositionEnd?: React.CompositionEventHandler<T>;
 }
 
-type TimerResponse = ReturnType<typeof setTimeout>;
+type TimerHandle = ReturnType<typeof setTimeout>;
 
+// ----------------------------------------------------------------------
+// Hook Implementation
+// ----------------------------------------------------------------------
+
+/**
+ * Custom hook that provides composition event handlers for inputs.
+ * Handles IME (Input Method Editor) composition events correctly,
+ * including a special two‑timer fix for Safari.
+ *
+ * @param options - Optional original event handlers.
+ * @returns An object containing composition event handlers and a function to check if composing.
+ */
 export function useComposition<
   T extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement,
 >(options: UseCompositionOptions<T> = {}): UseCompositionReturn<T> {
@@ -29,48 +45,53 @@ export function useComposition<
     onCompositionEnd: originalOnCompositionEnd,
   } = options;
 
-  const c = useRef(false);
-  const timer = useRef<TimerResponse | null>(null);
-  const timer2 = useRef<TimerResponse | null>(null);
+  const isComposingRef = useRef(false);
+  const timer1 = useRef<TimerHandle | null>(null);
+  const timer2 = useRef<TimerHandle | null>(null);
 
   const onCompositionStart = usePersistFn((e: React.CompositionEvent<T>) => {
-    if (timer.current) {
-      clearTimeout(timer.current);
-      timer.current = null;
+    // Clear any pending timers to avoid stale state
+    if (timer1.current) {
+      clearTimeout(timer1.current);
+      timer1.current = null;
     }
     if (timer2.current) {
       clearTimeout(timer2.current);
       timer2.current = null;
     }
-    c.current = true;
+
+    isComposingRef.current = true;
     originalOnCompositionStart?.(e);
   });
 
   const onCompositionEnd = usePersistFn((e: React.CompositionEvent<T>) => {
-    // 使用两层 setTimeout 来处理 Safari 浏览器中 compositionEnd 先于 onKeyDown 触发的问题
-    timer.current = setTimeout(() => {
+    // Two‑timer pattern to work around Safari's event order:
+    // In Safari, `compositionEnd` fires before the following `keydown` event.
+    // Delaying the reset ensures `isComposing()` stays `true` until the `keydown` has been processed.
+    timer1.current = setTimeout(() => {
       timer2.current = setTimeout(() => {
-        c.current = false;
+        isComposingRef.current = false;
       });
     });
+
     originalOnCompositionEnd?.(e);
   });
 
   const onKeyDown = usePersistFn((e: React.KeyboardEvent<T>) => {
-    // 在 composition 状态下，阻止 ESC 和 Enter（非 shift+Enter）事件的冒泡
+    // While composing, prevent default for Escape and Enter (without Shift)
+    // to avoid interfering with the IME.
     if (
-      c.current &&
+      isComposingRef.current &&
       (e.key === "Escape" || (e.key === "Enter" && !e.shiftKey))
     ) {
       e.stopPropagation();
       return;
     }
+
     originalOnKeyDown?.(e);
   });
 
-  const isComposing = usePersistFn(() => {
-    return c.current;
-  });
+  const isComposing = usePersistFn(() => isComposingRef.current);
 
   return {
     onCompositionStart,

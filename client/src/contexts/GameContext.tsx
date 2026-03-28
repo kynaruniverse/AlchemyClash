@@ -1,19 +1,23 @@
 // ============================================================
-// ALCHEMY CLASH — Game State Context
-// Manages discovered elements, deck, battle state, progression
+// ALCHEMY CLASH — Game State Context (Upgraded)
+// Clean ability system + bug fixes + scalable structure
 // ============================================================
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { ELEMENTS, CARDS, getFusionResult, Card, Element } from '@/lib/gameData';
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { ELEMENTS, CARDS, getFusionResult, Card, Element } from "@/lib/gameData";
 
-export type GameScreen = 'title' | 'fusion' | 'book' | 'deck' | 'battle' | 'victory';
+// ----------------------------------------------------------------------
+// Types
+// ----------------------------------------------------------------------
+
+export type GameScreen = "title" | "fusion" | "book" | "deck" | "battle" | "victory";
 
 export interface BattleLane {
   playerCard: Card | null;
   enemyCard: Card | null;
   playerPower: number;
   enemyPower: number;
-  winner: 'player' | 'enemy' | 'tie' | null;
+  winner: "player" | "enemy" | "tie" | null;
 }
 
 export interface BattleState {
@@ -21,18 +25,18 @@ export interface BattleState {
   playerEnergy: number;
   enemyEnergy: number;
   turn: number;
-  phase: 'placement' | 'reveal' | 'result';
+  phase: "placement" | "reveal" | "result";
   playerHand: Card[];
   playerDeck: Card[];
   enemyDeck: Card[];
   gameOver: boolean;
-  winner: 'player' | 'enemy' | null;
+  winner: "player" | "enemy" | null;
 }
 
 export interface GameState {
   screen: GameScreen;
   discoveredElements: Set<string>;
-  playerDeck: string[]; // card ids
+  playerDeck: string[];
   essence: number;
   battlesWon: number;
   totalDiscoveries: number;
@@ -44,11 +48,11 @@ export interface GameState {
 interface GameContextType {
   state: GameState;
   setScreen: (screen: GameScreen) => void;
-  tryFuse: (elementA: string, elementB: string) => { success: boolean; result: string | null };
-  addCardToDeck: (cardId: string) => void;
-  removeCardFromDeck: (cardId: string) => void;
+  tryFuse: (a: string, b: string) => { success: boolean; result: string | null };
+  addCardToDeck: (id: string) => void;
+  removeCardFromDeck: (id: string) => void;
   startBattle: () => void;
-  placeCard: (cardId: string, laneIndex: number) => void;
+  placeCard: (id: string, lane: number) => void;
   endPlacement: () => void;
   clearFusionAnimation: () => void;
   clearNewDiscovery: () => void;
@@ -56,9 +60,13 @@ interface GameContextType {
   getDiscoveredCards: () => Card[];
 }
 
+// ----------------------------------------------------------------------
+// Initial State
+// ----------------------------------------------------------------------
+
 const initialState: GameState = {
-  screen: 'title',
-  discoveredElements: new Set(['fire', 'water', 'earth', 'air']),
+  screen: "title",
+  discoveredElements: new Set(["fire", "water", "earth", "air"]),
   playerDeck: [],
   essence: 0,
   battlesWon: 0,
@@ -68,16 +76,9 @@ const initialState: GameState = {
   battle: null,
 };
 
-const GameContext = createContext<GameContextType | null>(null);
-
-function buildEnemyDeck(discoveredCards: Card[]): Card[] {
-  const available = discoveredCards.length > 0 ? discoveredCards : CARDS.slice(0, 4);
-  const deck: Card[] = [];
-  while (deck.length < 8) {
-    deck.push({ ...available[Math.floor(Math.random() * available.length)] });
-  }
-  return deck;
-}
+// ----------------------------------------------------------------------
+// Helper Functions
+// ----------------------------------------------------------------------
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -88,134 +89,206 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function buildEnemyDeck(availableCards: Card[]): Card[] {
+  const source = availableCards.length ? availableCards : CARDS.slice(0, 4);
+  return Array.from({ length: 8 }, () => ({
+    ...source[Math.floor(Math.random() * source.length)],
+  }));
+}
+
+// ----------------------------------------------------------------------
+// Ability System (clean + scalable)
+// ----------------------------------------------------------------------
+
+type AbilityFn = (laneIndex: number, lanes: BattleLane[], battle: BattleState) => void;
+
+const cardAbilities: Record<string, AbilityFn> = {
+  wizard: (laneIndex, lanes) => {
+    if (laneIndex > 0) lanes[laneIndex - 1].playerPower += 1;
+    if (laneIndex < lanes.length - 1) lanes[laneIndex + 1].playerPower += 1;
+  },
+
+  firebolt: (laneIndex, lanes) => {
+    lanes[laneIndex].enemyPower = Math.max(0, lanes[laneIndex].enemyPower - 2);
+  },
+
+  golem: (laneIndex, lanes) => {
+    lanes[laneIndex].playerPower = Math.max(3, lanes[laneIndex].playerPower);
+  },
+
+  forest_guardian: (laneIndex, lanes) => {
+    const natureCount = lanes.filter(
+      (lane) =>
+        lane.playerCard &&
+        ELEMENTS.find((e) => e.id === lane.playerCard!.elementId)?.category === "nature"
+    ).length;
+    lanes[laneIndex].playerPower += Math.max(0, natureCount - 1);
+  },
+
+  phoenix: (laneIndex, lanes) => {
+    if (lanes[laneIndex].playerPower < lanes[laneIndex].enemyPower) {
+      lanes[laneIndex].playerPower += 2;
+    }
+  },
+
+  thunder_hawk: (_, lanes) => {
+    lanes.forEach((lane) => {
+      lane.enemyPower = Math.max(0, lane.enemyPower - 1);
+    });
+  },
+
+  storm_knight: (laneIndex, lanes) => {
+    const winning = lanes.filter((lane) => lane.playerPower > lane.enemyPower).length;
+    if (winning >= 2) lanes[laneIndex].playerPower += 3;
+  },
+};
+
+// ----------------------------------------------------------------------
+// Context Provider
+// ----------------------------------------------------------------------
+
+const GameContext = createContext<GameContextType | null>(null);
+
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<GameState>(() => {
     try {
-      const saved = localStorage.getItem('alchemyClash_save');
+      const saved = localStorage.getItem("alchemyClash_save");
       if (saved) {
         const parsed = JSON.parse(saved);
         return {
           ...initialState,
           ...parsed,
-          discoveredElements: new Set(parsed.discoveredElements || ['fire', 'water', 'earth', 'air']),
-          screen: 'title',
-          fusionAnimation: null,
-          newDiscovery: null,
-          battle: null,
+          discoveredElements: new Set(parsed.discoveredElements || ["fire", "water", "earth", "air"]),
+          screen: "title",
         };
       }
-    } catch {}
+    } catch {
+      // ignore
+    }
     return initialState;
   });
 
-  // Persist state
+  // Persist to localStorage on state changes (excluding runtime-only fields)
   useEffect(() => {
-    const toSave = {
-      discoveredElements: Array.from(state.discoveredElements),
-      playerDeck: state.playerDeck,
-      essence: state.essence,
-      battlesWon: state.battlesWon,
-      totalDiscoveries: state.totalDiscoveries,
-    };
-    localStorage.setItem('alchemyClash_save', JSON.stringify(toSave));
-  }, [state.discoveredElements, state.playerDeck, state.essence, state.battlesWon]);
+    localStorage.setItem(
+      "alchemyClash_save",
+      JSON.stringify({
+        discoveredElements: Array.from(state.discoveredElements),
+        playerDeck: state.playerDeck,
+        essence: state.essence,
+        battlesWon: state.battlesWon,
+        totalDiscoveries: state.totalDiscoveries,
+      })
+    );
+  }, [state]);
+
+  // ----------------------------------------------------------------------
+  // Actions
+  // ----------------------------------------------------------------------
 
   const setScreen = useCallback((screen: GameScreen) => {
-    setState(s => ({ ...s, screen }));
+    setState((s) => ({ ...s, screen }));
   }, []);
 
-  const tryFuse = useCallback((elementA: string, elementB: string): { success: boolean; result: string | null } => {
-    const resultId = getFusionResult(elementA, elementB);
-    if (!resultId) {
-      setState(s => ({ ...s, fusionAnimation: { elementA, elementB, result: null } }));
+  const tryFuse = useCallback((a: string, b: string) => {
+    const result = getFusionResult(a, b);
+
+    if (!result) {
+      setState((s) => ({
+        ...s,
+        fusionAnimation: { elementA: a, elementB: b, result: null },
+      }));
       return { success: false, result: null };
     }
 
-    setState(s => {
-      const alreadyKnown = s.discoveredElements.has(resultId);
-      const newDiscovered = new Set(s.discoveredElements);
-      newDiscovered.add(resultId);
+    setState((s) => {
+      const known = s.discoveredElements.has(result);
+      const set = new Set(s.discoveredElements);
+      set.add(result);
+
       return {
         ...s,
-        discoveredElements: newDiscovered,
-        essence: s.essence + (alreadyKnown ? 1 : 5),
-        totalDiscoveries: newDiscovered.size,
-        fusionAnimation: { elementA, elementB, result: resultId },
-        newDiscovery: alreadyKnown ? null : resultId,
+        discoveredElements: set,
+        essence: s.essence + (known ? 1 : 5),
+        totalDiscoveries: set.size,
+        fusionAnimation: { elementA: a, elementB: b, result },
+        newDiscovery: known ? null : result,
       };
     });
-    return { success: true, result: resultId };
+
+    return { success: true, result };
   }, []);
 
-  const addCardToDeck = useCallback((cardId: string) => {
-    setState(s => {
+  const addCardToDeck = useCallback((id: string) => {
+    setState((s) => {
       if (s.playerDeck.length >= 14) return s;
-      return { ...s, playerDeck: [...s.playerDeck, cardId] };
+      return { ...s, playerDeck: [...s.playerDeck, id] };
     });
   }, []);
 
-  const removeCardFromDeck = useCallback((cardId: string) => {
-    setState(s => {
-      const idx = s.playerDeck.indexOf(cardId);
-      if (idx === -1) return s;
-      const newDeck = [...s.playerDeck];
-      newDeck.splice(idx, 1);
-      return { ...s, playerDeck: newDeck };
-    });
+  const removeCardFromDeck = useCallback((id: string) => {
+    setState((s) => ({
+      ...s,
+      playerDeck: s.playerDeck.filter((c) => c !== id),
+    }));
   }, []);
 
   const startBattle = useCallback(() => {
-    setState(s => {
-      const discoveredCards = CARDS.filter(c => s.discoveredElements.has(c.elementId));
-      const deckCards = s.playerDeck.length >= 3
-        ? s.playerDeck.map(id => CARDS.find(c => c.id === id)!).filter(Boolean)
-        : discoveredCards.length > 0 ? discoveredCards : CARDS.slice(0, 5);
+    setState((s) => {
+      const discovered = CARDS.filter((c) => s.discoveredElements.has(c.elementId));
 
-      const shuffledDeck = shuffle(deckCards);
-      const hand = shuffledDeck.slice(0, 3);
-      const remaining = shuffledDeck.slice(3);
+      const playerDeck =
+        s.playerDeck.length >= 3
+          ? s.playerDeck.map((id) => CARDS.find((c) => c.id === id)!).filter(Boolean)
+          : discovered.length
+          ? discovered
+          : CARDS.slice(0, 5);
 
-      const enemyDeck = shuffle(buildEnemyDeck(discoveredCards.length > 0 ? discoveredCards : CARDS.slice(0, 5)));
+      const shuffled = shuffle(playerDeck);
 
       const battle: BattleState = {
-        lanes: Array(4).fill(null).map(() => ({
-          playerCard: null, enemyCard: null,
-          playerPower: 0, enemyPower: 0, winner: null,
-        })),
+        lanes: Array(4)
+          .fill(null)
+          .map(() => ({
+            playerCard: null,
+            enemyCard: null,
+            playerPower: 0,
+            enemyPower: 0,
+            winner: null,
+          })),
         playerEnergy: 6,
         enemyEnergy: 6,
         turn: 1,
-        phase: 'placement',
-        playerHand: hand,
-        playerDeck: remaining,
-        enemyDeck,
+        phase: "placement",
+        playerHand: shuffled.slice(0, 3),
+        playerDeck: shuffled.slice(3),
+        enemyDeck: shuffle(buildEnemyDeck(discovered)),
         gameOver: false,
         winner: null,
       };
 
-      return { ...s, screen: 'battle', battle };
+      return { ...s, screen: "battle", battle };
     });
   }, []);
 
-  const placeCard = useCallback((cardId: string, laneIndex: number) => {
-    setState(s => {
-      if (!s.battle || s.battle.phase !== 'placement') return s;
-      const card = s.battle.playerHand.find(c => c.id === cardId);
-      if (!card) return s;
-      if (s.battle.lanes[laneIndex].playerCard) return s;
-      if (s.battle.playerEnergy < card.cost) return s;
+  const placeCard = useCallback((id: string, laneIndex: number) => {
+    setState((s) => {
+      if (!s.battle || s.battle.phase !== "placement") return s;
 
-      const newLanes = s.battle.lanes.map((lane, i) =>
+      const card = s.battle.playerHand.find((c) => c.id === id);
+      if (!card || s.battle.playerEnergy < card.cost) return s;
+      if (s.battle.lanes[laneIndex].playerCard) return s;
+
+      const lanes = s.battle.lanes.map((lane, i) =>
         i === laneIndex ? { ...lane, playerCard: card, playerPower: card.power } : lane
       );
-      const newHand = s.battle.playerHand.filter(c => c !== card);
 
       return {
         ...s,
         battle: {
           ...s.battle,
-          lanes: newLanes,
-          playerHand: newHand,
+          lanes,
+          playerHand: s.battle.playerHand.filter((c) => c !== card),
           playerEnergy: s.battle.playerEnergy - card.cost,
         },
       };
@@ -223,100 +296,68 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const endPlacement = useCallback(() => {
-    setState(s => {
+    setState((s) => {
       if (!s.battle) return s;
 
-      // AI places cards
       const battle = { ...s.battle };
-      const newLanes = [...battle.lanes.map(l => ({ ...l }))];
-      let enemyEnergy = battle.enemyEnergy;
+      const lanes = battle.lanes.map((l) => ({ ...l }));
+
+      let energy = battle.enemyEnergy;
       const enemyDeck = [...battle.enemyDeck];
 
-      // Simple AI: fill empty lanes with affordable cards
-      const availableCards = [...battle.enemyDeck].sort((a, b) => b.power - a.power);
-      for (let i = 0; i < 4; i++) {
-        if (!newLanes[i].enemyCard) {
-          const affordable = availableCards.find(c => c.cost <= enemyEnergy);
-          if (affordable) {
-            newLanes[i].enemyCard = affordable;
-            newLanes[i].enemyPower = affordable.power;
-            enemyEnergy -= affordable.cost;
-            availableCards.splice(availableCards.indexOf(affordable), 1);
-          }
-        }
-      }
+      // Sort enemy deck by power (descending) to pick strongest affordable card
+      const sorted = [...enemyDeck].sort((a, b) => b.power - a.power);
 
-      // Apply abilities (simplified)
-      // Wizard: +2 to adjacent lanes
-      newLanes.forEach((lane, i) => {
-        if (lane.playerCard?.id === 'wizard') {
-          if (i > 0) newLanes[i - 1].playerPower += 2;
-          if (i < 3) newLanes[i + 1].playerPower += 2;
-        }
-        // Firebolt: -3 enemy power
-        if (lane.playerCard?.id === 'firebolt') {
-          newLanes[i].enemyPower = Math.max(0, newLanes[i].enemyPower - 3);
-        }
-        // Golem: min 3 power
-        if (lane.playerCard?.id === 'golem') {
-          newLanes[i].playerPower = Math.max(3, newLanes[i].playerPower);
-        }
-        // Forest guardian: +1 per nature card
-        if (lane.playerCard?.id === 'forest_guardian') {
-          const natureCount = newLanes.filter(l => l.playerCard?.tag === 'nature').length;
-          newLanes[i].playerPower += natureCount - 1;
-        }
-        // Iron golem: immune to spells (already handled by not applying firebolt)
-        // Phoenix: if losing, +4 power
-        if (lane.playerCard?.id === 'phoenix') {
-          if (newLanes[i].playerPower < newLanes[i].enemyPower) {
-            newLanes[i].playerPower += 4;
+      lanes.forEach((lane, i) => {
+        if (!lane.enemyCard) {
+          const pick = sorted.find((c) => c.cost <= energy);
+          if (pick) {
+            lane.enemyCard = pick;
+            lane.enemyPower = pick.power;
+            energy -= pick.cost;
           }
-        }
-        // Thunder hawk: +2 to all storm cards, -1 to all enemies
-        if (lane.playerCard?.id === 'thunder_hawk') {
-          newLanes.forEach((l, j) => {
-            if (l.playerCard?.tag === 'storm') newLanes[j].playerPower += 2;
-            newLanes[j].enemyPower = Math.max(0, newLanes[j].enemyPower - 1);
-          });
-        }
-        // Storm knight: if winning 2+ lanes, +3
-        if (lane.playerCard?.id === 'storm_knight') {
-          const winning = newLanes.filter(l => l.playerPower > l.enemyPower).length;
-          if (winning >= 2) newLanes[i].playerPower += 3;
         }
       });
 
-      // Determine lane winners
-      newLanes.forEach(lane => {
-        if (lane.playerPower > lane.enemyPower) lane.winner = 'player';
-        else if (lane.enemyPower > lane.playerPower) lane.winner = 'enemy';
-        else lane.winner = 'tie';
+      // Apply abilities
+      lanes.forEach((lane, i) => {
+        const ability = lane.playerCard && cardAbilities[lane.playerCard.id];
+        if (ability) ability(i, lanes, battle);
       });
 
-      const playerWins = newLanes.filter(l => l.winner === 'player').length;
-      const enemyWins = newLanes.filter(l => l.winner === 'enemy').length;
-      const gameOver = true;
-      const winner = playerWins >= 3 ? 'player' : enemyWins >= 3 ? 'enemy' : playerWins > enemyWins ? 'player' : 'enemy';
+      // Determine winners
+      lanes.forEach((lane) => {
+        lane.winner =
+          lane.playerPower > lane.enemyPower
+            ? "player"
+            : lane.enemyPower > lane.playerPower
+            ? "enemy"
+            : "tie";
+      });
 
-      // Draw a card for next turn
-      const newHand = [...battle.playerHand];
-      if (battle.playerDeck.length > 0) {
-        newHand.push(battle.playerDeck[0]);
-      }
+      const playerWins = lanes.filter((l) => l.winner === "player").length;
+      const enemyWins = lanes.filter((l) => l.winner === "enemy").length;
+
+      const winner =
+        playerWins >= 3
+          ? "player"
+          : enemyWins >= 3
+          ? "enemy"
+          : playerWins > enemyWins
+          ? "player"
+          : "enemy";
 
       return {
         ...s,
-        essence: s.essence + (winner === 'player' ? 10 : 2),
-        battlesWon: winner === 'player' ? s.battlesWon + 1 : s.battlesWon,
+        essence: s.essence + (winner === "player" ? 10 : 2),
+        battlesWon: winner === "player" ? s.battlesWon + 1 : s.battlesWon,
         battle: {
           ...battle,
-          lanes: newLanes,
-          enemyEnergy,
+          lanes,
+          enemyEnergy: energy,
           enemyDeck,
-          playerHand: newHand,
-          phase: 'reveal',
-          gameOver,
+          phase: "reveal",
+          gameOver: true,
           winner,
         },
       };
@@ -324,34 +365,45 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const clearFusionAnimation = useCallback(() => {
-    setState(s => ({ ...s, fusionAnimation: null }));
+    setState((s) => ({ ...s, fusionAnimation: null }));
   }, []);
 
   const clearNewDiscovery = useCallback(() => {
-    setState(s => ({ ...s, newDiscovery: null }));
+    setState((s) => ({ ...s, newDiscovery: null }));
   }, []);
 
-  const getDiscoveredElements = useCallback((): Element[] => {
-    return ELEMENTS.filter(e => state.discoveredElements.has(e.id));
+  const getDiscoveredElements = useCallback(() => {
+    return ELEMENTS.filter((e) => state.discoveredElements.has(e.id));
   }, [state.discoveredElements]);
 
-  const getDiscoveredCards = useCallback((): Card[] => {
-    return CARDS.filter(c => state.discoveredElements.has(c.elementId));
+  const getDiscoveredCards = useCallback(() => {
+    return CARDS.filter((c) => state.discoveredElements.has(c.elementId));
   }, [state.discoveredElements]);
 
-  return (
-    <GameContext.Provider value={{
-      state, setScreen, tryFuse, addCardToDeck, removeCardFromDeck,
-      startBattle, placeCard, endPlacement, clearFusionAnimation,
-      clearNewDiscovery, getDiscoveredElements, getDiscoveredCards,
-    }}>
-      {children}
-    </GameContext.Provider>
-  );
+  // ----------------------------------------------------------------------
+  // Provider Value
+  // ----------------------------------------------------------------------
+
+  const value: GameContextType = {
+    state,
+    setScreen,
+    tryFuse,
+    addCardToDeck,
+    removeCardFromDeck,
+    startBattle,
+    placeCard,
+    endPlacement,
+    clearFusionAnimation,
+    clearNewDiscovery,
+    getDiscoveredElements,
+    getDiscoveredCards,
+  };
+
+  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 
-export function useGame() {
+export function useGame(): GameContextType {
   const ctx = useContext(GameContext);
-  if (!ctx) throw new Error('useGame must be used within GameProvider');
+  if (!ctx) throw new Error("useGame must be used within GameProvider");
   return ctx;
 }

@@ -3,13 +3,25 @@ import { useComposition } from "@/hooks/useComposition";
 import { cn } from "@/lib/utils";
 import * as React from "react";
 
+export interface TextareaProps extends React.ComponentProps<"textarea"> {
+  variant?: "default" | "alchemy" | "nature" | "magic";
+}
+
+const textareaVariantStyles = {
+  default: "bg-parchment/80 border-gold/30 text-ink placeholder:text-gold/40",
+  alchemy: "bg-gold/5 border-gold/50 text-ink placeholder:text-gold/50",
+  nature: "bg-moss/5 border-moss/40 text-ink placeholder:text-moss/50",
+  magic: "bg-violet-magic/5 border-violet-magic/40 text-ink placeholder:text-violet-magic/50",
+};
+
 function Textarea({
   className,
+  variant = "default",
   onKeyDown,
   onCompositionStart,
   onCompositionEnd,
   ...props
-}: React.ComponentProps<"textarea">) {
+}: TextareaProps) {
   // Get dialog composition context if available (will be no-op if not inside Dialog)
   const dialogComposition = useDialogComposition();
 
@@ -49,11 +61,17 @@ function Textarea({
     },
   });
 
+  const styles = textareaVariantStyles[variant];
+
   return (
     <textarea
       data-slot="textarea"
       className={cn(
-        "border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "flex field-sizing-content min-h-16 w-full rounded-md border px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
+        "focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:border-gold",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        "aria-invalid:border-clay aria-invalid:ring-clay/20",
+        styles,
         className
       )}
       onCompositionStart={handleCompositionStart}

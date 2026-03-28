@@ -3,15 +3,40 @@ import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
 import { cn } from "@/lib/utils";
 
+// ----------------------------------------------------------------------
+// ScrollArea Root (with optional parchment background)
+// ----------------------------------------------------------------------
+
+export interface ScrollAreaProps
+  extends React.ComponentProps<typeof ScrollAreaPrimitive.Root> {
+  /** Visual variant of the scrollbar */
+  variant?: "default" | "alchemy" | "nature" | "magic";
+  /** Apply a parchment background to the scroll area */
+  parchment?: boolean;
+}
+
+const scrollbarVariantStyles = {
+  default: "bg-gold/40 hover:bg-gold/60",
+  alchemy: "bg-gold/60 hover:bg-gold/80",
+  nature: "bg-moss/50 hover:bg-moss/70",
+  magic: "bg-violet-magic/50 hover:bg-violet-magic/70",
+};
+
 function ScrollArea({
   className,
   children,
+  variant = "default",
+  parchment = false,
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+}: ScrollAreaProps) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn("relative", className)}
+      className={cn(
+        "relative",
+        parchment && "bg-parchment/30 rounded-md border border-gold/20",
+        className
+      )}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
@@ -20,17 +45,29 @@ function ScrollArea({
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
+      <ScrollBar variant={variant} />
+      <ScrollAreaPrimitive.Corner className="bg-gold/10 border-t border-l border-gold/20 rounded-bl-sm" />
     </ScrollAreaPrimitive.Root>
   );
+}
+
+// ----------------------------------------------------------------------
+// ScrollBar (with theming)
+// ----------------------------------------------------------------------
+
+export interface ScrollBarProps
+  extends React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar> {
+  variant?: "default" | "alchemy" | "nature" | "magic";
 }
 
 function ScrollBar({
   className,
   orientation = "vertical",
+  variant = "default",
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
+}: ScrollBarProps) {
+  const thumbStyles = scrollbarVariantStyles[variant];
+
   return (
     <ScrollAreaPrimitive.ScrollAreaScrollbar
       data-slot="scroll-area-scrollbar"
@@ -47,7 +84,10 @@ function ScrollBar({
     >
       <ScrollAreaPrimitive.ScrollAreaThumb
         data-slot="scroll-area-thumb"
-        className="bg-border relative flex-1 rounded-full"
+        className={cn(
+          "relative flex-1 rounded-full transition-all duration-200",
+          thumbStyles
+        )}
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   );

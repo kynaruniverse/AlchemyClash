@@ -14,30 +14,30 @@ import BookScreen from "./pages/BookScreen";
 import DeckScreen from "./pages/DeckScreen";
 import BattleScreen from "./pages/BattleScreen";
 
-function GameRouter() {
+function GameRouter(): JSX.Element {
   const { state } = useGame();
 
   switch (state.screen) {
-    case 'title':
+    case "title":
       return <TitleScreen />;
-    case 'fusion':
+    case "fusion":
       return <FusionScreen />;
-    case 'book':
+    case "book":
       return <BookScreen />;
-    case 'deck':
+    case "deck":
       return <DeckScreen />;
-    case 'battle':
+    case "battle":
       return <BattleScreen />;
     default:
       return <TitleScreen />;
   }
 }
 
-function App() {
+function App(): JSX.Element {
   return (
     <ThemeProvider defaultTheme="light">
       <TooltipProvider>
-          <GameProvider>
+        <GameProvider>
           <Toaster />
           <DiscoveryToast />
           <GameRouter />

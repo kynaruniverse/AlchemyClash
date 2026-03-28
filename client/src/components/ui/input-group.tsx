@@ -6,13 +6,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
+// ----------------------------------------------------------------------
+// InputGroup Container (with theming)
+// ----------------------------------------------------------------------
+
+export interface InputGroupProps extends React.ComponentProps<"div"> {
+  /** Visual variant of the input group */
+  variant?: "default" | "alchemy" | "nature" | "magic";
+}
+
+const variantStyles = {
+  default: "bg-parchment/80 border-gold/30 text-ink shadow-sm",
+  alchemy: "bg-gold/5 border-gold/50 text-ink shadow-md",
+  nature: "bg-moss/5 border-moss/40 text-ink shadow-md",
+  magic: "bg-violet-magic/5 border-violet-magic/40 text-ink shadow-md",
+};
+
+function InputGroup({
+  className,
+  variant = "default",
+  ...props
+}: InputGroupProps) {
   return (
     <div
       data-slot="input-group"
       role="group"
       className={cn(
-        "group/input-group border-input dark:bg-input/30 relative flex w-full items-center rounded-md border shadow-xs transition-[color,box-shadow] outline-none",
+        // Base layout and states (original)
+        "group/input-group relative flex w-full items-center rounded-md border shadow-xs transition-[color,box-shadow] outline-none",
         "h-9 min-w-0 has-[>textarea]:h-auto",
 
         // Variants based on alignment.
@@ -21,12 +42,15 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
         "has-[>[data-align=block-start]]:h-auto has-[>[data-align=block-start]]:flex-col has-[>[data-align=block-start]]:[&>input]:pb-3",
         "has-[>[data-align=block-end]]:h-auto has-[>[data-align=block-end]]:flex-col has-[>[data-align=block-end]]:[&>input]:pt-3",
 
-        // Focus state.
-        "has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 has-[[data-slot=input-group-control]:focus-visible]:ring-[3px]",
+        // Focus state (gold ring)
+        "has-[[data-slot=input-group-control]:focus-visible]:border-gold has-[[data-slot=input-group-control]:focus-visible]:ring-gold/50",
+        "has-[[data-slot=input-group-control]:focus-visible]:ring-[3px]",
 
-        // Error state.
-        "has-[[data-slot][aria-invalid=true]]:ring-destructive/20 has-[[data-slot][aria-invalid=true]]:border-destructive dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40",
+        // Error state (clay red)
+        "has-[[data-slot][aria-invalid=true]]:ring-clay/20 has-[[data-slot][aria-invalid=true]]:border-clay dark:has-[[data-slot][aria-invalid=true]]:ring-clay/40",
 
+        // Theme
+        variantStyles[variant],
         className
       )}
       {...props}
@@ -34,8 +58,12 @@ function InputGroup({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+// ----------------------------------------------------------------------
+// InputGroupAddon (with gold‑tinted text)
+// ----------------------------------------------------------------------
+
 const inputGroupAddonVariants = cva(
-  "text-muted-foreground flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium select-none [&>svg:not([class*='size-'])]:size-4 [&>kbd]:rounded-[calc(var(--radius)-5px)] group-data-[disabled=true]/input-group:opacity-50",
+  "flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium select-none [&>svg:not([class*='size-'])]:size-4 [&>kbd]:rounded-[calc(var(--radius)-5px)] group-data-[disabled=true]/input-group:opacity-50",
   {
     variants: {
       align: {
@@ -65,7 +93,12 @@ function InputGroupAddon({
       role="group"
       data-slot="input-group-addon"
       data-align={align}
-      className={cn(inputGroupAddonVariants({ align }), className)}
+      className={cn(
+        inputGroupAddonVariants({ align }),
+        // Gold‑tinted text
+        "text-gold/70",
+        className
+      )}
       onClick={e => {
         if ((e.target as HTMLElement).closest("button")) {
           return;
@@ -76,6 +109,10 @@ function InputGroupAddon({
     />
   );
 }
+
+// ----------------------------------------------------------------------
+// InputGroupButton (with gold styling)
+// ----------------------------------------------------------------------
 
 const inputGroupButtonVariants = cva(
   "text-sm shadow-none flex gap-2 items-center",
@@ -108,23 +145,37 @@ function InputGroupButton({
       type={type}
       data-size={size}
       variant={variant}
-      className={cn(inputGroupButtonVariants({ size }), className)}
-      {...props}
-    />
-  );
-}
-
-function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
-  return (
-    <span
       className={cn(
-        "text-muted-foreground flex items-center gap-2 text-sm [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
+        inputGroupButtonVariants({ size }),
+        // Override ghost hover to be gold
+        variant === "ghost" && "hover:bg-gold/10 hover:text-gold",
         className
       )}
       {...props}
     />
   );
 }
+
+// ----------------------------------------------------------------------
+// InputGroupText (gold‑tinted)
+// ----------------------------------------------------------------------
+
+function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
+  return (
+    <span
+      className={cn(
+        "flex items-center gap-2 text-sm [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
+        "text-gold/70",
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+// ----------------------------------------------------------------------
+// InputGroupInput / Textarea (unchanged except they inherit parent styling)
+// ----------------------------------------------------------------------
 
 function InputGroupInput({
   className,

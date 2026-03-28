@@ -2,20 +2,38 @@ import * as React from "react";
 
 const MOBILE_BREAKPOINT = 768;
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
-    undefined
-  );
+/**
+ * Hook that detects if the current viewport matches mobile dimensions.
+ * Uses a media query to listen for changes and update accordingly.
+ *
+ * @returns `true` if the screen width is less than `MOBILE_BREAKPOINT`, otherwise `false`.
+ */
+export function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = React.useState<boolean>(() => {
+    // Check window existence for SSR safety
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < MOBILE_BREAKPOINT;
+  });
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
+    if (typeof window === "undefined") return;
+
+    const handleResize = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
-    mql.addEventListener("change", onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener("change", onChange);
+
+    // Listen to both resize and orientation change for better coverage
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+
+    // Initial check
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
   }, []);
 
-  return !!isMobile;
+  return isMobile;
 }

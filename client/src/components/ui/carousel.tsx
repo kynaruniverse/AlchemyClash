@@ -17,6 +17,10 @@ type CarouselProps = {
   plugins?: CarouselPlugin;
   orientation?: "horizontal" | "vertical";
   setApi?: (api: CarouselApi) => void;
+  /** Visual variant of the carousel container */
+  variant?: "default" | "alchemy" | "nature" | "magic";
+  /** Add a decorative gold border/ribbon */
+  decorative?: boolean;
 };
 
 type CarouselContextProps = {
@@ -32,11 +36,9 @@ const CarouselContext = React.createContext<CarouselContextProps | null>(null);
 
 function useCarousel() {
   const context = React.useContext(CarouselContext);
-
   if (!context) {
     throw new Error("useCarousel must be used within a <Carousel />");
   }
-
   return context;
 }
 
@@ -46,6 +48,8 @@ function Carousel({
   setApi,
   plugins,
   className,
+  variant = "default",
+  decorative = false,
   children,
   ...props
 }: React.ComponentProps<"div"> & CarouselProps) {
@@ -58,6 +62,13 @@ function Carousel({
   );
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
+
+  const variantStyles = {
+    default: "bg-parchment/80 border-gold/30 text-ink shadow-sm",
+    alchemy: "bg-gold/5 border-gold/50 text-ink shadow-md",
+    nature: "bg-moss/5 border-moss/40 text-ink shadow-md",
+    magic: "bg-violet-magic/5 border-violet-magic/40 text-ink shadow-md",
+  };
 
   const onSelect = React.useCallback((api: CarouselApi) => {
     if (!api) return;
@@ -114,16 +125,31 @@ function Carousel({
         scrollNext,
         canScrollPrev,
         canScrollNext,
+        variant,
+        decorative,
       }}
     >
       <div
         onKeyDownCapture={handleKeyDown}
-        className={cn("relative", className)}
+        className={cn(
+          "relative rounded-xl border transition-all duration-200",
+          variantStyles[variant],
+          decorative && "pt-6", // space for decorative ribbon
+          className
+        )}
         role="region"
         aria-roledescription="carousel"
         data-slot="carousel"
         {...props}
       >
+        {/* Decorative gold top ribbon */}
+        {decorative && (
+          <>
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-gold/60 rounded-full" />
+            <div className="absolute top-0 left-4 w-8 h-[2px] bg-gold/30" />
+            <div className="absolute top-0 right-4 w-8 h-[2px] bg-gold/30" />
+          </>
+        )}
         {children}
       </div>
     </CarouselContext.Provider>
@@ -183,7 +209,8 @@ function CarouselPrevious({
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full",
+        "absolute size-8 rounded-full border-gold/60 bg-parchment/80 text-gold hover:bg-gold/20 hover:text-gold-dark transition-all duration-200",
+        "disabled:opacity-50 disabled:hover:bg-parchment/80",
         orientation === "horizontal"
           ? "top-1/2 -left-12 -translate-y-1/2"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
@@ -213,7 +240,8 @@ function CarouselNext({
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full",
+        "absolute size-8 rounded-full border-gold/60 bg-parchment/80 text-gold hover:bg-gold/20 hover:text-gold-dark transition-all duration-200",
+        "disabled:opacity-50 disabled:hover:bg-parchment/80",
         orientation === "horizontal"
           ? "top-1/2 -right-12 -translate-y-1/2"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",

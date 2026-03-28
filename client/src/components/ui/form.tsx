@@ -97,7 +97,13 @@ function FormLabel({
     <Label
       data-slot="form-label"
       data-error={!!error}
-      className={cn("data-[error=true]:text-destructive", className)}
+      className={cn(
+        // Base typography
+        "font-cinzel text-ink",
+        // Error state
+        "data-[error=true]:text-clay",
+        className
+      )}
       htmlFor={formItemId}
       {...props}
     />
@@ -118,6 +124,11 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
           : `${formDescriptionId} ${formMessageId}`
       }
       aria-invalid={!!error}
+      // Add gold focus ring to inputs inside the slot
+      className={cn(
+        "focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:outline-none focus-visible:ring-offset-1",
+        "disabled:opacity-50 disabled:cursor-not-allowed"
+      )}
       {...props}
     />
   );
@@ -130,7 +141,10 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="form-description"
       id={formDescriptionId}
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn(
+        "text-sm font-lora text-ink/70",
+        className
+      )}
       {...props}
     />
   );
@@ -148,7 +162,10 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="form-message"
       id={formMessageId}
-      className={cn("text-destructive text-sm", className)}
+      className={cn(
+        "text-sm font-lora text-clay",
+        className
+      )}
       {...props}
     >
       {body}

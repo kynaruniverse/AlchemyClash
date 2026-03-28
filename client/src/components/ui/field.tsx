@@ -5,20 +5,61 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
-function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
+// ----------------------------------------------------------------------
+// FieldSet (with optional theming)
+// ----------------------------------------------------------------------
+
+export interface FieldSetProps extends React.ComponentProps<"fieldset"> {
+  /** Visual variant of the fieldset */
+  variant?: "default" | "alchemy" | "nature" | "magic";
+  /** Add a decorative gold ribbon at the top */
+  decorative?: boolean;
+}
+
+const fieldSetVariantStyles = {
+  default: "bg-parchment/80 border-gold/30 text-ink shadow-sm",
+  alchemy: "bg-gold/5 border-gold/50 text-ink shadow-md",
+  nature: "bg-moss/5 border-moss/40 text-ink shadow-md",
+  magic: "bg-violet-magic/5 border-violet-magic/40 text-ink shadow-md",
+};
+
+function FieldSet({
+  className,
+  variant = "default",
+  decorative = false,
+  ...props
+}: FieldSetProps) {
   return (
     <fieldset
       data-slot="field-set"
       className={cn(
+        // Base layout (original)
         "flex flex-col gap-6",
         "has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
+        // Theme
+        "relative rounded-lg border p-6 transition-all duration-200",
+        fieldSetVariantStyles[variant],
+        decorative && "pt-8", // space for ribbon
         className
       )}
       {...props}
-    />
+    >
+      {/* Decorative gold ribbon */}
+      {decorative && (
+        <>
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-gold/60 rounded-full" />
+          <div className="absolute top-0 left-4 w-8 h-[2px] bg-gold/30" />
+          <div className="absolute top-0 right-4 w-8 h-[2px] bg-gold/30" />
+        </>
+      )}
+      {props.children}
+    </fieldset>
   );
 }
 
+// ----------------------------------------------------------------------
+// FieldLegend (enhanced typography)
+// ----------------------------------------------------------------------
 function FieldLegend({
   className,
   variant = "legend",
@@ -30,8 +71,8 @@ function FieldLegend({
       data-variant={variant}
       className={cn(
         "mb-3 font-medium",
-        "data-[variant=legend]:text-base",
-        "data-[variant=label]:text-sm",
+        "data-[variant=legend]:text-base data-[variant=legend]:font-cinzel data-[variant=legend]:text-gold",
+        "data-[variant=label]:text-sm data-[variant=label]:font-lora data-[variant=label]:text-ink/70",
         className
       )}
       {...props}
@@ -39,6 +80,9 @@ function FieldLegend({
   );
 }
 
+// ----------------------------------------------------------------------
+// FieldGroup (kept as‑is, but can inherit styling)
+// ----------------------------------------------------------------------
 function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -52,6 +96,9 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+// ----------------------------------------------------------------------
+// Field (layout component, no theme changes, but we can add a variant for the wrapper)
+// ----------------------------------------------------------------------
 const fieldVariants = cva(
   "group/field flex w-full gap-3 data-[invalid=true]:text-destructive",
   {
@@ -92,6 +139,9 @@ function Field({
   );
 }
 
+// ----------------------------------------------------------------------
+// FieldContent (can contain inputs)
+// ----------------------------------------------------------------------
 function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -105,6 +155,9 @@ function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+// ----------------------------------------------------------------------
+// FieldLabel (enhanced typography)
+// ----------------------------------------------------------------------
 function FieldLabel({
   className,
   ...props
@@ -115,7 +168,9 @@ function FieldLabel({
       className={cn(
         "group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50",
         "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:rounded-md has-[>[data-slot=field]]:border [&>*]:data-[slot=field]:p-4",
-        "has-data-[state=checked]:bg-primary/5 has-data-[state=checked]:border-primary dark:has-data-[state=checked]:bg-primary/10",
+        "has-data-[state=checked]:bg-gold/5 has-data-[state=checked]:border-gold",
+        // Typography
+        "font-cinzel text-ink",
         className
       )}
       {...props}
@@ -123,12 +178,16 @@ function FieldLabel({
   );
 }
 
+// ----------------------------------------------------------------------
+// FieldTitle (separate from label, used for group titles)
+// ----------------------------------------------------------------------
 function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="field-label"
       className={cn(
         "flex w-fit items-center gap-2 text-sm leading-snug font-medium group-data-[disabled=true]/field:opacity-50",
+        "font-cinzel text-ink",
         className
       )}
       {...props}
@@ -136,14 +195,18 @@ function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+// ----------------------------------------------------------------------
+// FieldDescription (enhanced)
+// ----------------------------------------------------------------------
 function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
       data-slot="field-description"
       className={cn(
-        "text-muted-foreground text-sm leading-normal font-normal group-has-[[data-orientation=horizontal]]/field:text-balance",
+        "text-sm leading-normal font-normal font-lora text-ink/70",
+        "group-has-[[data-orientation=horizontal]]/field:text-balance",
         "last:mt-0 nth-last-2:-mt-1 [[data-variant=legend]+&]:-mt-1.5",
-        "[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
+        "[&>a:hover]:text-gold [&>a]:underline [&>a]:underline-offset-4 [&>a]:text-gold/80",
         className
       )}
       {...props}
@@ -151,6 +214,9 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
   );
 }
 
+// ----------------------------------------------------------------------
+// FieldSeparator (gold line)
+// ----------------------------------------------------------------------
 function FieldSeparator({
   children,
   className,
@@ -168,10 +234,10 @@ function FieldSeparator({
       )}
       {...props}
     >
-      <Separator className="absolute inset-0 top-1/2" />
+      <Separator className="absolute inset-0 top-1/2 bg-gold/30" />
       {children && (
         <span
-          className="bg-background text-muted-foreground relative mx-auto block w-fit px-2"
+          className="bg-parchment text-ink/60 relative mx-auto block w-fit px-2 font-lora text-xs"
           data-slot="field-separator-content"
         >
           {children}
@@ -181,6 +247,9 @@ function FieldSeparator({
   );
 }
 
+// ----------------------------------------------------------------------
+// FieldError (clay red)
+// ----------------------------------------------------------------------
 function FieldError({
   className,
   children,
@@ -220,7 +289,10 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn("text-destructive text-sm font-normal", className)}
+      className={cn(
+        "text-clay text-sm font-normal font-lora",
+        className
+      )}
       {...props}
     >
       {content}

@@ -3,14 +3,31 @@ import { useComposition } from "@/hooks/useComposition";
 import { cn } from "@/lib/utils";
 import * as React from "react";
 
+// ----------------------------------------------------------------------
+// Input with theming
+// ----------------------------------------------------------------------
+
+export interface InputProps extends React.ComponentProps<"input"> {
+  /** Visual variant of the input */
+  variant?: "default" | "alchemy" | "nature" | "magic";
+}
+
+const variantStyles = {
+  default: "bg-parchment/80 border-gold/30 text-ink placeholder:text-gold/40",
+  alchemy: "bg-gold/5 border-gold/50 text-ink placeholder:text-gold/50",
+  nature: "bg-moss/5 border-moss/40 text-ink placeholder:text-moss/50",
+  magic: "bg-violet-magic/5 border-violet-magic/40 text-ink placeholder:text-violet-magic/50",
+};
+
 function Input({
   className,
   type,
+  variant = "default",
   onKeyDown,
   onCompositionStart,
   onCompositionEnd,
   ...props
-}: React.ComponentProps<"input">) {
+}: InputProps) {
   // Get dialog composition context if available (will be no-op if not inside Dialog)
   const dialogComposition = useDialogComposition();
 
@@ -22,7 +39,8 @@ function Input({
   } = useComposition<HTMLInputElement>({
     onKeyDown: (e) => {
       // Check if this is an Enter key that should be blocked
-      const isComposing = (e.nativeEvent as any).isComposing || dialogComposition.justEndedComposing();
+      const isComposing =
+        (e.nativeEvent as any).isComposing || dialogComposition.justEndedComposing();
 
       // If Enter key is pressed while composing or just after composition ended,
       // don't call the user's onKeyDown (this blocks the business logic)
@@ -33,11 +51,11 @@ function Input({
       // Otherwise, call the user's onKeyDown
       onKeyDown?.(e);
     },
-    onCompositionStart: e => {
+    onCompositionStart: (e) => {
       dialogComposition.setComposing(true);
       onCompositionStart?.(e);
     },
-    onCompositionEnd: e => {
+    onCompositionEnd: (e) => {
       // Mark that composition just ended - this helps handle the Enter key that confirms input
       dialogComposition.markCompositionEnd();
       // Delay setting composing to false to handle Safari's event order
@@ -54,9 +72,16 @@ function Input({
       type={type}
       data-slot="input"
       className={cn(
-        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        // Base styles (original)
+        "h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none md:text-sm",
+        "file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium",
+        "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
+        // Theme (background, border, text, placeholder)
+        variantStyles[variant],
+        // Focus ring (gold)
+        "focus-visible:border-gold focus-visible:ring-gold/50 focus-visible:ring-[3px]",
+        // Error state (clay)
+        "aria-invalid:border-clay aria-invalid:ring-clay/20 dark:aria-invalid:ring-clay/40",
         className
       )}
       onCompositionStart={handleCompositionStart}

@@ -18,18 +18,29 @@ export type ChartConfig = {
 
 type ChartContextProps = {
   config: ChartConfig;
+  variant?: "default" | "alchemy" | "nature" | "magic";
+  decorative?: boolean;
 };
 
 const ChartContext = React.createContext<ChartContextProps | null>(null);
 
 function useChart() {
   const context = React.useContext(ChartContext);
-
   if (!context) {
     throw new Error("useChart must be used within a <ChartContainer />");
   }
-
   return context;
+}
+
+interface ChartContainerProps extends React.ComponentProps<"div"> {
+  config: ChartConfig;
+  children: React.ComponentProps<
+    typeof RechartsPrimitive.ResponsiveContainer
+  >["children"];
+  /** Visual variant of the chart container */
+  variant?: "default" | "alchemy" | "nature" | "magic";
+  /** Add a decorative gold top ribbon */
+  decorative?: boolean;
 }
 
 function ChartContainer({
@@ -37,27 +48,44 @@ function ChartContainer({
   className,
   children,
   config,
+  variant = "default",
+  decorative = false,
   ...props
-}: React.ComponentProps<"div"> & {
-  config: ChartConfig;
-  children: React.ComponentProps<
-    typeof RechartsPrimitive.ResponsiveContainer
-  >["children"];
-}) {
+}: ChartContainerProps) {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
+  const variantStyles = {
+    default: "bg-parchment/80 border-gold/30 text-ink shadow-sm",
+    alchemy: "bg-gold/5 border-gold/50 text-ink shadow-md",
+    nature: "bg-moss/5 border-moss/40 text-ink shadow-md",
+    magic: "bg-violet-magic/5 border-violet-magic/40 text-ink shadow-md",
+  };
+
   return (
-    <ChartContext.Provider value={{ config }}>
+    <ChartContext.Provider value={{ config, variant, decorative }}>
       <div
         data-slot="chart"
         data-chart={chartId}
         className={cn(
+          // Recharts style overrides (original)
           "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border flex aspect-video justify-center text-xs [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+          // Parchment container
+          "relative rounded-xl border transition-all duration-200",
+          variantStyles[variant],
+          decorative && "pt-6", // space for decorative ribbon
           className
         )}
         {...props}
       >
+        {/* Decorative gold top ribbon */}
+        {decorative && (
+          <>
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-gold/60 rounded-full" />
+            <div className="absolute top-0 left-4 w-8 h-[2px] bg-gold/30" />
+            <div className="absolute top-0 right-4 w-8 h-[2px] bg-gold/30" />
+          </>
+        )}
         <ChartStyle id={chartId} config={config} />
         <RechartsPrimitive.ResponsiveContainer>
           {children}
@@ -124,7 +152,7 @@ function ChartTooltipContent({
     nameKey?: string;
     labelKey?: string;
   }) {
-  const { config } = useChart();
+  const { config, variant, decorative } = useChart();
 
   const tooltipLabel = React.useMemo(() => {
     if (hideLabel || !payload?.length) {
@@ -171,7 +199,9 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        "border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl",
+        // Tooltip styling: parchment background, gold border, manuscript fonts
+        "border-gold/30 bg-parchment/95 rounded-lg border px-3 py-2 text-xs shadow-lg backdrop-blur-sm",
+        "font-lora text-ink",
         className
       )}
     >
@@ -228,12 +258,12 @@ function ChartTooltipContent({
                     >
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
-                        <span className="text-muted-foreground">
+                        <span className="text-ink/70 font-cinzel text-xs">
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
                       {item.value && (
-                        <span className="text-foreground font-mono font-medium tabular-nums">
+                        <span className="text-ink font-mono font-medium tabular-nums">
                           {item.value.toLocaleString()}
                         </span>
                       )}
@@ -270,7 +300,7 @@ function ChartLegendContent({
   return (
     <div
       className={cn(
-        "flex items-center justify-center gap-4",
+        "flex items-center justify-center gap-4 font-cinzel text-xs text-ink/70",
         verticalAlign === "top" ? "pb-3" : "pt-3",
         className
       )}
@@ -298,7 +328,7 @@ function ChartLegendContent({
                   }}
                 />
               )}
-              {itemConfig?.label}
+              <span>{itemConfig?.label}</span>
             </div>
           );
         })}
